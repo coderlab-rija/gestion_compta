@@ -11,7 +11,7 @@ import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
 class Ajoutfournisseurs extends StatefulWidget {
-  final Categorie categorie;
+  final Category categorie;
   const Ajoutfournisseurs({Key? key, required this.categorie})
       : super(key: key);
 

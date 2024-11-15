@@ -10,15 +10,15 @@ import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Ajoutcategorie extends StatefulWidget {
-  const Ajoutcategorie({super.key});
+class Addcategory extends StatefulWidget {
+  const Addcategory({super.key});
 
   @override
-  State<Ajoutcategorie> createState() => _AjoutproduitState();
+  State<Addcategory> createState() => _AddcategoryState();
 }
 
-class _AjoutproduitState extends State<Ajoutcategorie> {
-  final nomCategorie = TextEditingController();
+class _AddcategoryState extends State<Addcategory> {
+  final nameCategorie = TextEditingController();
   final description = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
@@ -68,7 +68,7 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: Sidebar(onItemSelected: _onItemSelected), // Ajout de la Sidebar
+      drawer: Sidebar(onItemSelected: _onItemSelected), // Add the Sidebar
       body: Center(
         child: SingleChildScrollView(
           child: Form(
@@ -81,7 +81,7 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Ajouter un categorie",
+                        "Add a category",
                         style: TextStyle(
                             fontSize: 30, fontWeight: FontWeight.bold),
                       ),
@@ -89,7 +89,7 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                   ),
                   const SizedBox(height: 20),
 
-                  /// Nom du catégorie
+                  /// Category Name
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -100,17 +100,17 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nomCategorie,
+                      controller: nameCategorie,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du catégorie obligatoire";
+                          return "Category Name is required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du catégorie",
+                        hintText: "Category Name",
                       ),
                     ),
                   ),
@@ -148,8 +148,8 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
                           db
-                              .ajoutCategorie(Categorie(
-                            nom: nomCategorie.text,
+                              .addCategory(Category(
+                            name: nameCategorie.text,
                             description: description.text,
                           ))
                               .then((value) {
@@ -157,20 +157,18 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) =>
-                                        const Listecategorie()),
+                                    builder: (context) => const Listcategory()),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Échec de l\'ajout')),
+                                const SnackBar(content: Text('Adding failed')),
                               );
                             }
                           });
                         }
                       },
                       child: const Text(
-                        "Ajouter",
+                        "Add",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

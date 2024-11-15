@@ -12,7 +12,7 @@ import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
 class Ajoutproduit extends StatefulWidget {
-  final Categorie categorie;
+  final Category categorie;
   const Ajoutproduit({Key? key, required this.categorie}) : super(key: key);
 
   @override
@@ -20,12 +20,12 @@ class Ajoutproduit extends StatefulWidget {
 }
 
 class _AjoutproduitState extends State<Ajoutproduit> {
-  final TextEditingController nomProduit = TextEditingController();
-  final TextEditingController quantiter = TextEditingController();
+  final TextEditingController nameProduit = TextEditingController();
+  final TextEditingController quantity = TextEditingController();
   final TextEditingController description = TextEditingController();
-  final TextEditingController prixProduit = TextEditingController();
+  final TextEditingController price = TextEditingController();
   final TextEditingController categorieId = TextEditingController();
-  final TextEditingController unite = TextEditingController();
+  final TextEditingController unity = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   void _onItemSelected(int index) {
@@ -74,7 +74,7 @@ class _AjoutproduitState extends State<Ajoutproduit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: Sidebar(onItemSelected: _onItemSelected), // Sidebar ajoutée
+      drawer: Sidebar(onItemSelected: _onItemSelected), // add sidebar
       body: Center(
         child: SingleChildScrollView(
           child: Form(
@@ -87,7 +87,7 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Ajouter un produit",
+                        "Add product",
                         style: TextStyle(
                             fontSize: 40, fontWeight: FontWeight.bold),
                       ),
@@ -95,7 +95,7 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Nom du produit
+                  // Product name
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -106,22 +106,22 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nomProduit,
+                      controller: nameProduit,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du produit obligatoire";
+                          return "Product name required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du produit",
+                        hintText: "Product name",
                       ),
                     ),
                   ),
 
-                  // Quantité
+                  // Quantity
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -132,11 +132,11 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: quantiter,
+                      controller: quantity,
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Quantité obligatoire";
+                          return "Quantity required";
                         }
                         if (double.tryParse(value) == null) {
                           return "Veuillez entrer un nombre valide";
@@ -151,7 +151,7 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                   ),
 
-                  // unite
+                  // unity
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -162,16 +162,16 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: unite,
+                      controller: unity,
                       keyboardType: TextInputType.text,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.text_fields_sharp),
                         border: InputBorder.none,
-                        hintText: "Unité",
+                        hintText: "Unity",
                       ),
                     ),
                   ),
-                  // Prix
+                  // Price
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -182,21 +182,21 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: prixProduit,
+                      controller: price,
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Prix obligatoire";
+                          return "Price required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un prix valide";
+                          return "Please enter a price";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.money),
                         border: InputBorder.none,
-                        hintText: "Prix par unité",
+                        hintText: "Price per unit",
                       ),
                     ),
                   ),
@@ -234,33 +234,31 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
                           db
-                              .ajoutProduit(Produits(
-                                  nom: nomProduit.text,
-                                  quantiter: int.tryParse(quantiter.text) ?? 0,
-                                  prixUnitaire:
-                                      double.tryParse(prixProduit.text) ?? 0.0,
+                              .addProduct(Product(
+                                  name: nameProduit.text,
+                                  quantity: int.tryParse(quantity.text) ?? 0,
+                                  price: double.tryParse(price.text) ?? 0.0,
                                   description: description.text,
-                                  categorieId: widget.categorie.id,
-                                  unite: unite.text))
+                                  categoryId: widget.categorie.id,
+                                  unity: unity.text))
                               .then((value) {
                             if (value > 0) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => Listeproduit(),
+                                  builder: (context) => Listproduct(),
                                 ),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Échec de l\'ajout')),
+                                const SnackBar(content: Text('Adding failed')),
                               );
                             }
                           });
                         }
                       },
                       child: const Text(
-                        "Ajouter produit",
+                        "Add product",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

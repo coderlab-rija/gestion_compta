@@ -41,14 +41,14 @@ class _HomePageState extends State<HomePage> {
           _selectedIndex == 0
               ? ''
               : _selectedIndex == 1
-                  ? 'Gestion des Inventaires'
+                  ? 'Inventory Management'
                   : _selectedIndex == 2
-                      ? 'Gestion des Fournisseurs'
+                      ? 'Supplier Management'
                       : _selectedIndex == 3
                           ? 'Facturation'
                           : _selectedIndex == 4
-                              ? 'Tableau de bord'
-                              : 'Se déconnecter',
+                              ? 'Dashboard'
+                              : 'Log out',
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),

@@ -79,31 +79,31 @@ class _StockHometState extends State<StockHome> {
                 mainAxisSpacing: 10.0,
                 children: [
                   _buildGridItem(
-                    title: 'Catégorie des produits',
+                    title: 'Product Category',
                     icon: Icons.category,
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Listecategorie(),
+                          builder: (context) => const Listcategory(),
                         ),
                       );
                     },
                   ),
                   _buildGridItem(
-                    title: 'Liste des produits',
+                    title: 'List of products',
                     icon: Icons.list,
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Listeproduit(),
+                          builder: (context) => const Listproduct(),
                         ),
                       );
                     },
                   ),
                   _buildGridItem(
-                    title: 'Inventaire',
+                    title: 'Inventory',
                     icon: Icons.inventory,
                     onTap: () {
                       Navigator.push(
@@ -115,7 +115,7 @@ class _StockHometState extends State<StockHome> {
                     },
                   ),
                   _buildGridItem(
-                    title: 'Historique',
+                    title: 'Historic',
                     icon: Icons.history,
                     onTap: () {
                       Navigator.push(

@@ -10,16 +10,16 @@ import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
 class Editcategorie extends StatefulWidget {
-  final Categorie categorie;
+  final Category category;
 
-  const Editcategorie({super.key, required this.categorie});
+  const Editcategorie({super.key, required this.category});
 
   @override
   State<Editcategorie> createState() => _EditproduitState();
 }
 
 class _EditproduitState extends State<Editcategorie> {
-  final nomProduit = TextEditingController();
+  final nameProduit = TextEditingController();
   final descritpion = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
@@ -68,8 +68,8 @@ class _EditproduitState extends State<Editcategorie> {
   @override
   void initState() {
     super.initState();
-    // Pre-remplir le champ
-    nomProduit.text = widget.categorie.nom;
+    // Pre-fill the field
+    nameProduit.text = widget.category.name;
   }
 
   @override
@@ -89,7 +89,7 @@ class _EditproduitState extends State<Editcategorie> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Modifier le produit",
+                        "Edit category",
                         style: TextStyle(
                             fontSize: 30, fontWeight: FontWeight.bold),
                       ),
@@ -108,17 +108,17 @@ class _EditproduitState extends State<Editcategorie> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nomProduit,
+                      controller: nameProduit,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du produit obligatoire";
+                          return "Category Name required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du produit",
+                        hintText: "Category Name",
                       ),
                     ),
                   ),
@@ -155,20 +155,20 @@ class _EditproduitState extends State<Editcategorie> {
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db.updateCategorie(Categorie(
-                              id: widget.categorie.id,
-                              nom: nomProduit.text,
+                          db.updateCategory(Category(
+                              id: widget.category.id,
+                              name: nameProduit.text,
                               description: descritpion.text));
                           Navigator.pop(context, true);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Produit modifié avec succès"),
+                              content: Text("Category successfully modified"),
                             ),
                           );
                         }
                       },
                       child: const Text(
-                        "Modifier",
+                        "Update",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

@@ -9,22 +9,22 @@ import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Editproduit extends StatefulWidget {
-  final Produits produit;
+class Editproduct extends StatefulWidget {
+  final Product product;
 
-  const Editproduit({super.key, required this.produit});
+  const Editproduct({super.key, required this.product});
 
   @override
-  State<Editproduit> createState() => _EditproduitState();
+  State<Editproduct> createState() => _EditproduitState();
 }
 
-class _EditproduitState extends State<Editproduit> {
-  final nomProduit = TextEditingController();
-  final quantiter = TextEditingController();
+class _EditproduitState extends State<Editproduct> {
+  final nameProduct = TextEditingController();
+  final quantity = TextEditingController();
   final desccritpion = TextEditingController();
-  final prixProduit = TextEditingController();
-  final categorieId = TextEditingController();
-  final unite = TextEditingController();
+  final price = TextEditingController();
+  final categoryId = TextEditingController();
+  final unity = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   void _onItemSelected(int index) {
@@ -72,11 +72,11 @@ class _EditproduitState extends State<Editproduit> {
   @override
   void initState() {
     super.initState();
-    // Pre-remplir le champ
-    nomProduit.text = widget.produit.nom;
-    quantiter.text = widget.produit.quantiter.toString();
-    prixProduit.text = widget.produit.prixUnitaire.toString();
-    desccritpion.text = widget.produit.description;
+    // Pre-fill the field
+    nameProduct.text = widget.product.name;
+    quantity.text = widget.product.quantity.toString();
+    price.text = widget.product.price.toString();
+    desccritpion.text = widget.product.description;
   }
 
   @override
@@ -96,7 +96,7 @@ class _EditproduitState extends State<Editproduit> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Modifier le produit",
+                        "Edit product",
                         style: TextStyle(
                             fontSize: 30, fontWeight: FontWeight.bold),
                       ),
@@ -115,17 +115,17 @@ class _EditproduitState extends State<Editproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nomProduit,
+                      controller: nameProduct,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du produit obligatoire";
+                          return "Product name required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du produit",
+                        hintText: "Product name",
                       ),
                     ),
                   ),
@@ -141,28 +141,28 @@ class _EditproduitState extends State<Editproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: quantiter,
+                      controller: quantity,
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Quantité obligatoire";
+                          return "Quantity required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un nombre valide";
+                          return "Please enter a valid number";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.format_list_numbered),
                         border: InputBorder.none,
-                        hintText: "Quantité",
+                        hintText: "Quantity",
                       ),
                     ),
                   ),
 
                   ///PRIX///
                   Container(
-                    margin: const EdgeInsets.all(4), // Réduire la marge
+                    margin: const EdgeInsets.all(4), // Reduce the margin
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
@@ -171,21 +171,21 @@ class _EditproduitState extends State<Editproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: prixProduit,
+                      controller: price,
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Prix obligatoire";
+                          return "Price required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un prix";
+                          return "Please enter a price";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.money),
                         border: InputBorder.none,
-                        hintText: "Prix par unité",
+                        hintText: "Price per unit",
                       ),
                     ),
                   ),
@@ -222,26 +222,25 @@ class _EditproduitState extends State<Editproduit> {
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db.updateProduit(Produits(
-                            id: widget.produit.id,
-                            nom: nomProduit.text,
-                            quantiter: int.tryParse(quantiter.text) ?? 0,
-                            prixUnitaire:
-                                double.tryParse(prixProduit.text) ?? 0.0,
+                          db.updateProduct(Product(
+                            id: widget.product.id,
+                            name: nameProduct.text,
+                            quantity: int.tryParse(quantity.text) ?? 0,
+                            price: double.tryParse(price.text) ?? 0.0,
                             description: desccritpion.text,
-                            categorieId: widget.produit.categorieId,
-                            unite: unite.text,
+                            categoryId: widget.product.categoryId,
+                            unity: unity.text,
                           ));
                           Navigator.pop(context, true);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Produit modifié avec succès"),
+                              content: Text("Product successfully modified"),
                             ),
                           );
                         }
                       },
                       child: const Text(
-                        "Modifier",
+                        "Update",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

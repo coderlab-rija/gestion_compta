@@ -5,32 +5,32 @@ import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/ajoutCategorie.dart';
+import 'package:my_apk/page/gestion%20de%20stock/categories/addCategory.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/editCategorie.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/ajoutProduit.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Listecategorie extends StatefulWidget {
-  const Listecategorie({super.key});
+class Listcategory extends StatefulWidget {
+  const Listcategory({super.key});
 
   @override
-  State<Listecategorie> createState() => _ListeCategorieState();
+  State<Listcategory> createState() => _ListeCategorieState();
 }
 
-class _ListeCategorieState extends State<Listecategorie> {
-  late Future<List<Categorie>> _categorieFuture;
+class _ListeCategorieState extends State<Listcategory> {
+  late Future<List<Category>> _categoryFuture;
 
   @override
   void initState() {
     super.initState();
-    _categorieFuture = fetchCategories();
+    _categoryFuture = fetchCategory();
   }
 
-  Future<List<Categorie>> fetchCategories() async {
+  Future<List<Category>> fetchCategory() async {
     final dbHelper = DataBaseHelper();
-    return await dbHelper.getCategorie();
+    return await dbHelper.getCategory();
   }
 
   void _onItemSelected(int index) {
@@ -78,11 +78,11 @@ class _ListeCategorieState extends State<Listecategorie> {
   void _addProduit() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const Ajoutcategorie()),
+      MaterialPageRoute(builder: (context) => const Addcategory()),
     ).then((value) {
       if (value == true) {
         setState(() {
-          _categorieFuture = fetchCategories();
+          _categoryFuture = fetchCategory();
         });
       }
     });
@@ -92,7 +92,7 @@ class _ListeCategorieState extends State<Listecategorie> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Liste des catégories"),
+        title: const Text("List of categories"),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -105,21 +105,21 @@ class _ListeCategorieState extends State<Listecategorie> {
         ],
       ),
       drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Categorie>>(
-        future: _categorieFuture,
+      body: FutureBuilder<List<Category>>(
+        future: _categoryFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Erreur: ${snapshot.error}"));
+            return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Aucune catégorie trouvée"));
+            return const Center(child: Text("No categories found"));
           } else {
-            final categories = snapshot.data!;
+            final category = snapshot.data!;
             return ListView.builder(
-              itemCount: categories.length,
+              itemCount: category.length,
               itemBuilder: (context, index) {
-                final categorie = categories[index];
+                final response = category[index];
                 return Card(
                   margin:
                       const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
@@ -136,7 +136,7 @@ class _ListeCategorieState extends State<Listecategorie> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              categorie.nom,
+                              response.name,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -153,7 +153,7 @@ class _ListeCategorieState extends State<Listecategorie> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Ajoutproduit(categorie: categorie),
+                                            Ajoutproduit(categorie: response),
                                       ),
                                     );
                                   },
@@ -162,7 +162,7 @@ class _ListeCategorieState extends State<Listecategorie> {
                                   icon: const Icon(Icons.info,
                                       color: Colors.blue),
                                   onPressed: () {
-                                    _showDetails(context, categorie);
+                                    _showDetails(context, response);
                                   },
                                 ),
                                 IconButton(
@@ -173,12 +173,12 @@ class _ListeCategorieState extends State<Listecategorie> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Editcategorie(categorie: categorie),
+                                            Editcategorie(category: response),
                                       ),
                                     ).then((value) {
                                       if (value == true) {
                                         setState(() {
-                                          _categorieFuture = fetchCategories();
+                                          _categoryFuture = fetchCategory();
                                         });
                                       }
                                     });
@@ -188,7 +188,7 @@ class _ListeCategorieState extends State<Listecategorie> {
                                   icon: const Icon(Icons.delete,
                                       color: Colors.red),
                                   onPressed: () {
-                                    _deleteCategorie(categorie);
+                                    _deleteCategorie(response);
                                   },
                                 ),
                               ],
@@ -201,7 +201,7 @@ class _ListeCategorieState extends State<Listecategorie> {
                             Icon(Icons.description, color: Colors.grey[700]),
                             const SizedBox(width: 8),
                             Text(
-                              "Quantité: ${categorie.description}",
+                              "Quantity: ${response.description}",
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[800],
@@ -221,19 +221,19 @@ class _ListeCategorieState extends State<Listecategorie> {
     );
   }
 
-  void _showDetails(BuildContext context, Categorie categorie) {
+  void _showDetails(BuildContext context, Category categorie) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Détails de la catégorie"),
+          title: const Text("Category details"),
           content: Text(
-            "Nom: ${categorie.nom}",
+            "Name: ${categorie.name}",
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Fermer"),
+              child: const Text("Cancel"),
             ),
           ],
         );
@@ -241,18 +241,17 @@ class _ListeCategorieState extends State<Listecategorie> {
     );
   }
 
-  void _deleteCategorie(Categorie categorie) {
+  void _deleteCategorie(Category categorie) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Confirmer la suppression"),
-          content:
-              Text("Êtes-vous sûr de vouloir supprimer ${categorie.nom} ?"),
+          title: const Text("Confirm deletion"),
+          content: Text("Are you sure you want to delete? ${categorie.name} ?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Annuler"),
+              child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () async {
@@ -261,21 +260,20 @@ class _ListeCategorieState extends State<Listecategorie> {
 
                 if (result != -1) {
                   setState(() {
-                    _categorieFuture = fetchCategories();
+                    _categoryFuture = fetchCategory();
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Catégorie supprimée avec succès')),
+                        content: Text('Category deleted successfully')),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Erreur lors de la suppression')),
+                    const SnackBar(content: Text('Error while deleting')),
                   );
                 }
                 Navigator.of(context).pop();
               },
-              child: const Text("Supprimer"),
+              child: const Text("Deleted"),
             ),
           ],
         );

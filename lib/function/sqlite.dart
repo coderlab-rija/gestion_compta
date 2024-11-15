@@ -10,7 +10,7 @@ import 'package:path/path.dart';
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'gestionComptable.db');
+    final path = join(databasePath, 'FISCACompte.db');
     return openDatabase(
       path,
       version: 1,
@@ -20,11 +20,11 @@ class DataBaseHelper {
         );
 
         await db.execute(
-          'CREATE TABLE produits (id INTEGER PRIMARY KEY AUTOINCREMENT, nom TEXT NOT NULL, quantiter INTEGER NOT NULL, prixUnitaire REAL NOT NULL, description TEXT, categorieId INTEGER, unite TEXT NOT NULL, FOREIGN KEY(categorieId) REFERENCES categorie(id))',
+          'CREATE TABLE product (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, quantity INTEGER NOT NULL, price REAL NOT NULL, description TEXT, categoryId INTEGER, unity TEXT NOT NULL, FOREIGN KEY(categoryId) REFERENCES category(id))',
         );
 
         await db.execute(
-          'CREATE TABLE categorie (id INTEGER PRIMARY KEY AUTOINCREMENT, nom TEXT NOT NULL, description TEXT)',
+          'CREATE TABLE category (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, description TEXT)',
         );
 
         await db.execute(
@@ -33,8 +33,6 @@ class DataBaseHelper {
 
         await db.execute(
           'CREATE TABLE unite (id INTEGER PRIMARY KEY AUTOINCREMENT, nomFournisseur TEXT NOT NULL)',
-
-          
         );
       },
     );
@@ -103,18 +101,51 @@ class DataBaseHelper {
     return null;
   }
 
-  Future<List<Categorie>> getCategorie() async {
+  Future<void> updateProfil(Utilisateur utilisateur) async {
+    final db = await initDB();
+    await db.update(
+      'utilisateur',
+      utilisateur.toMap(),
+      where: 'id = ?',
+      whereArgs: [utilisateur.id],
+    );
+  }
+
+  Future<List<Category>> getCategory() async {
     final db = await initDB();
     final List<Map<String, Object?>> categoriesMaps =
-        await db.query('categorie');
+        await db.query('category');
 
     return categoriesMaps.map((categoryMap) {
-      return Categorie(
+      return Category(
         id: categoryMap['id'] as int,
-        nom: categoryMap['nom'] as String,
+        name: categoryMap['name'] as String,
         description: categoryMap['description'] as String,
       );
     }).toList();
+  }
+
+  Future<int> addCategory(Category category) async {
+    try {
+      final Database db = await initDB();
+      return await db.insert(
+        'category',
+        category.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<void> updateCategory(Category category) async {
+    final db = await initDB();
+    await db.update(
+      'category',
+      category.toMap(),
+      where: 'id = ?',
+      whereArgs: [category.id],
+    );
   }
 
   Future<List<Unite>> getUnite() async {
@@ -147,36 +178,33 @@ class DataBaseHelper {
     }).toList();
   }
 
-  Future<int> ajoutProduit(Produits produit) async {
+  Future<int> addProduct(Product produit) async {
     final Database db = await initDB();
 
     List<Map<String, dynamic>> categorieExistante = await db.query(
-      'categorie',
+      'category',
       where: 'id = ?',
-      whereArgs: [produit.categorieId],
+      whereArgs: [produit.categoryId],
     );
 
     if (categorieExistante.isEmpty) {
       return -1;
     }
     return await db.insert(
-      'produits',
+      'product',
       produit.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  Future<int> ajoutCategorie(Categorie categorie) async {
-    try {
-      final Database db = await initDB();
-      return await db.insert(
-        'categorie',
-        categorie.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    } catch (e) {
-      return -1;
-    }
+  Future<void> updateProduct(Product product) async {
+    final db = await initDB();
+    await db.update(
+      'product',
+      product.toMap(),
+      where: 'id = ?',
+      whereArgs: [product.id],
+    );
   }
 
   Future<int> ajoutFournisseur(Fournisseur fournisseur) async {
@@ -192,36 +220,6 @@ class DataBaseHelper {
     }
   }
 
-  Future<void> updateProfil(Utilisateur utilisateur) async {
-    final db = await initDB();
-    await db.update(
-      'utilisateur',
-      utilisateur.toMap(),
-      where: 'id = ?',
-      whereArgs: [utilisateur.id],
-    );
-  }
-
-  Future<void> updateProduit(Produits produits) async {
-    final db = await initDB();
-    await db.update(
-      'produits',
-      produits.toMap(),
-      where: 'id = ?',
-      whereArgs: [produits.id],
-    );
-  }
-
-  Future<void> updateCategorie(Categorie categorie) async {
-    final db = await initDB();
-    await db.update(
-      'categorie',
-      categorie.toMap(),
-      where: 'id = ?',
-      whereArgs: [categorie.id],
-    );
-  }
-
   Future<void> updateFournisseur(Fournisseur fournisseur) async {
     final db = await initDB();
     await db.update(
@@ -232,7 +230,7 @@ class DataBaseHelper {
     );
   }
 
-  Future<int> deleteProduit(int id) async {
+  Future<int> deleteProduct(int id) async {
     try {
       final Database db = await initDB();
       return await db.delete(
@@ -258,7 +256,7 @@ class DataBaseHelper {
     }
   }
 
-  Future<void> deconnexion() async {
+  Future<void> logOut() async {
     final Database db = await initDB();
     await db.delete('session');
   }
