@@ -10,7 +10,7 @@ import 'package:path/path.dart';
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'FISCACompte.db');
+    final path = join(databasePath, 'FISCAComptes.db');
     return openDatabase(
       path,
       version: 1,
@@ -28,7 +28,7 @@ class DataBaseHelper {
         );
 
         await db.execute(
-          'CREATE TABLE fournisseur (id INTEGER PRIMARY KEY AUTOINCREMENT, nomFournisseur TEXT NOT NULL, addresseFournisseur TEXT, nif TEXT, stat TEXT, contact TEXT, dateCreation TEXT)',
+          'CREATE TABLE fournisseur (id INTEGER PRIMARY KEY AUTOINCREMENT, fournisseurName TEXT NOT NULL, fournisseurAdress TEXT, nif TEXT, stat TEXT, contact TEXT, dateCreation TEXT)',
         );
 
         await db.execute(
@@ -160,16 +160,16 @@ class DataBaseHelper {
     }).toList();
   }
 
-  Future<List<Fournisseur>> getFournisseur() async {
+  Future<List<Supplier>> getFournisseur() async {
     final db = await initDB();
     final List<Map<String, Object?>> fournisseurMaps =
         await db.query('fournisseur');
 
     return fournisseurMaps.map((fournisseurMaps) {
-      return Fournisseur(
+      return Supplier(
         id: fournisseurMaps['id'] as int,
-        nomFournisseur: fournisseurMaps['nomFournisseur'] as String,
-        addresseFournisseur: fournisseurMaps['addresseFournisseur'] as String,
+        fournisseurName: fournisseurMaps['fournisseurName'] as String,
+        fournisseurAdress: fournisseurMaps['fournisseurAdress'] as String,
         nif: fournisseurMaps['nif'] as String,
         stat: fournisseurMaps['stat'] as String,
         contact: fournisseurMaps['contact'] as String,
@@ -207,12 +207,12 @@ class DataBaseHelper {
     );
   }
 
-  Future<int> ajoutFournisseur(Fournisseur fournisseur) async {
+  Future<int> addSupplier(Supplier supplier) async {
     try {
       final Database db = await initDB();
       return await db.insert(
         'fournisseur',
-        fournisseur.toMap(),
+        supplier.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
@@ -220,13 +220,13 @@ class DataBaseHelper {
     }
   }
 
-  Future<void> updateFournisseur(Fournisseur fournisseur) async {
+  Future<void> updateFournisseur(Supplier supplier) async {
     final db = await initDB();
     await db.update(
       'fournisseur',
-      fournisseur.toMap(),
+      supplier.toMap(),
       where: 'id = ?',
-      whereArgs: [fournisseur.id],
+      whereArgs: [supplier.id],
     );
   }
 

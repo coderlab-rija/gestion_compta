@@ -4,8 +4,8 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/listeCategorie.dart';
+import 'package:my_apk/page/fournisseur/listSupplier.dart';
+import 'package:my_apk/page/gestion%20de%20stock/categories/listCategory.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
@@ -68,7 +68,7 @@ class _AddcategoryState extends State<Addcategory> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: Sidebar(onItemSelected: _onItemSelected), // Add the Sidebar
+      drawer: Sidebar(onItemSelected: _onItemSelected),
       body: Center(
         child: SingleChildScrollView(
           child: Form(
@@ -98,7 +98,6 @@ class _AddcategoryState extends State<Addcategory> {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.deepPurple.withOpacity(.2),
                     ),
-                    height: 60,
                     child: TextFormField(
                       controller: nameCategorie,
                       validator: (value) {
@@ -112,6 +111,7 @@ class _AddcategoryState extends State<Addcategory> {
                         border: InputBorder.none,
                         hintText: "Category Name",
                       ),
+                      maxLines: 1,
                     ),
                   ),
 
@@ -124,14 +124,17 @@ class _AddcategoryState extends State<Addcategory> {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.deepPurple.withOpacity(.2),
                     ),
-                    height: 60,
                     child: TextFormField(
                       controller: description,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      minLines: 1,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.description),
                         border: InputBorder.none,
                         hintText: "Description",
                       ),
+                      expands: false,
                     ),
                   ),
 

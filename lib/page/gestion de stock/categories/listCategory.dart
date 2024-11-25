@@ -4,10 +4,10 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
+import 'package:my_apk/page/fournisseur/listSupplier.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/addCategory.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/editCategorie.dart';
-import 'package:my_apk/page/gestion%20de%20stock/produits/ajoutProduit.dart';
+import 'package:my_apk/page/gestion%20de%20stock/categories/editCategory.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/addProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
@@ -200,11 +200,16 @@ class _ListeCategorieState extends State<Listcategory> {
                           children: [
                             Icon(Icons.description, color: Colors.grey[700]),
                             const SizedBox(width: 8),
-                            Text(
-                              "Quantity: ${response.description}",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[800],
+                            Expanded(
+                              // Utilisation de Expanded pour permettre au texte de s'ajuster
+                              child: Text(
+                                "${response.description}",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[800],
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
                               ),
                             ),
                           ],
@@ -228,7 +233,7 @@ class _ListeCategorieState extends State<Listcategory> {
         return AlertDialog(
           title: const Text("Category details"),
           content: Text(
-            "Name: ${categorie.name}",
+            "Name: ${categorie.name}\nDescription: ${categorie.description}",
           ),
           actions: [
             TextButton(

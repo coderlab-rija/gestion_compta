@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:my_apk/database/categorie.dart';
-import 'package:my_apk/database/fournisseur.dart';
+import 'package:my_apk/database/produits.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
+import 'package:my_apk/page/fournisseur/listSupplier.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Ajoutfournisseurs extends StatefulWidget {
-  final Category categorie;
-  const Ajoutfournisseurs({Key? key, required this.categorie})
-      : super(key: key);
+class Editproduct extends StatefulWidget {
+  final Product product;
+
+  const Editproduct({super.key, required this.product});
 
   @override
-  State<Ajoutfournisseurs> createState() => _AjoutFournisseurState();
+  State<Editproduct> createState() => _EditproduitState();
 }
 
-class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
-  final TextEditingController nomFournisseur = TextEditingController();
-  final TextEditingController addresseFournisseur = TextEditingController();
-  final TextEditingController nif = TextEditingController();
-  final TextEditingController stat = TextEditingController();
-  final TextEditingController contact = TextEditingController();
-  final TextEditingController dateCreation = TextEditingController();
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+class _EditproduitState extends State<Editproduct> {
+  final nameProduct = TextEditingController();
+  final quantity = TextEditingController();
+  final desccritpion = TextEditingController();
+  final price = TextEditingController();
+  final categoryId = TextEditingController();
+  final unity = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   void _onItemSelected(int index) {
     Navigator.pop(context);
@@ -71,10 +70,20 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Pre-fill the field
+    nameProduct.text = widget.product.name;
+    quantity.text = widget.product.quantity.toString();
+    price.text = widget.product.price.toString();
+    desccritpion.text = widget.product.description;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: Sidebar(onItemSelected: _onItemSelected), // Sidebar ajoutée
+      drawer: Sidebar(onItemSelected: _onItemSelected),
       body: Center(
         child: SingleChildScrollView(
           child: Form(
@@ -87,15 +96,15 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Ajouter un produit",
+                        "Edit product",
                         style: TextStyle(
-                            fontSize: 40, fontWeight: FontWeight.bold),
+                            fontSize: 30, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // Nom du produit
+                  ///NAME///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -106,22 +115,22 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nomFournisseur,
+                      controller: nameProduct,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du fournisseur obligatoire";
+                          return "Product name required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du fournisseur",
+                        hintText: "Product name",
                       ),
                     ),
                   ),
 
-                  // Quantité
+                  ///QUANTITY///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -132,28 +141,28 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: addresseFournisseur,
+                      controller: quantity,
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Addresse obligatoire";
+                          return "Quantity required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer une addresse obligatoire";
+                          return "Please enter a valid number";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.format_list_numbered),
                         border: InputBorder.none,
-                        hintText: "Addresse",
+                        hintText: "Quantity",
                       ),
                     ),
                   ),
 
-                  // NIF
+                  ///PRIX///
                   Container(
-                    margin: const EdgeInsets.all(4),
+                    margin: const EdgeInsets.all(4), // Reduce the margin
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
@@ -162,26 +171,26 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nif,
+                      controller: price,
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nif obligatoire";
+                          return "Price required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un nif obligatoire";
+                          return "Please enter a price";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
-                        icon: Icon(Icons.numbers),
+                        icon: Icon(Icons.money),
                         border: InputBorder.none,
-                        hintText: "Prix par unité",
+                        hintText: "Price per unit",
                       ),
                     ),
                   ),
 
-                  // STAT
+                  ///DESCRIPTION///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -192,71 +201,11 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: stat,
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Stat obligatoire";
-                        }
-                        if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un stat obligatoire";
-                        }
-                        return null;
-                      },
+                      controller: desccritpion,
                       decoration: const InputDecoration(
-                        icon: Icon(Icons.numbers),
+                        icon: Icon(Icons.description),
                         border: InputBorder.none,
-                        hintText: "Prix par unité",
-                      ),
-                    ),
-                  ),
-
-                  // CONTACT
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(.2),
-                    ),
-                    height: 60,
-                    child: TextFormField(
-                      controller: contact,
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Contact obligatoire";
-                        }
-                        if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un contact";
-                        }
-                        return null;
-                      },
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.contact_phone),
-                        border: InputBorder.none,
-                        hintText: "Prix par unité",
-                      ),
-                    ),
-                  ),
-
-                  // DATE
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(.2),
-                    ),
-                    height: 60,
-                    child: TextFormField(
-                      controller: dateCreation,
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.dataset),
-                        border: InputBorder.none,
-                        hintText: "Date de création",
+                        hintText: "Description",
                       ),
                     ),
                   ),
@@ -273,33 +222,25 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db
-                              .ajoutFournisseur(Fournisseur(
-                                  nomFournisseur: nomFournisseur.text,
-                                  addresseFournisseur: addresseFournisseur.text,
-                                  nif: nif.text,
-                                  stat: stat.text,
-                                  contact: contact.text,
-                                  dateCreation: dateCreation.text))
-                              .then((value) {
-                            if (value > 0) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Fournisseurhome(),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Échec de l\'ajout')),
-                              );
-                            }
-                          });
+                          db.updateProduct(Product(
+                            id: widget.product.id,
+                            name: nameProduct.text,
+                            quantity: int.tryParse(quantity.text) ?? 0,
+                            price: double.tryParse(price.text) ?? 0.0,
+                            description: desccritpion.text,
+                            categoryId: widget.product.categoryId,
+                            unity: unity.text,
+                          ));
+                          Navigator.pop(context, true);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Product successfully modified"),
+                            ),
+                          );
                         }
                       },
                       child: const Text(
-                        "Ajouter produit",
+                        "Update",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

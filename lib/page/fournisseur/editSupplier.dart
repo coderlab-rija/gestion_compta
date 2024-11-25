@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:my_apk/database/categorie.dart';
-import 'package:my_apk/database/produits.dart';
+import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
-import 'package:my_apk/page/gestion%20de%20stock/produits/listeProduit.dart';
+import 'package:my_apk/page/fournisseur/listSupplier.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Ajoutproduit extends StatefulWidget {
-  final Category categorie;
-  const Ajoutproduit({Key? key, required this.categorie}) : super(key: key);
+class Editsupplier extends StatefulWidget {
+  final Supplier supplier;
+
+  const Editsupplier({super.key, required this.supplier});
 
   @override
-  State<Ajoutproduit> createState() => _AjoutproduitState();
+  State<Editsupplier> createState() => _EditsupplierState();
 }
 
-class _AjoutproduitState extends State<Ajoutproduit> {
-  final TextEditingController nameProduit = TextEditingController();
-  final TextEditingController quantity = TextEditingController();
-  final TextEditingController description = TextEditingController();
-  final TextEditingController price = TextEditingController();
-  final TextEditingController categorieId = TextEditingController();
-  final TextEditingController unity = TextEditingController();
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+class _EditsupplierState extends State<Editsupplier> {
+  final fournisseurName = TextEditingController();
+  final fournisseurAdress = TextEditingController();
+  final nif = TextEditingController();
+  final stat = TextEditingController();
+  final contact = TextEditingController();
+  final dateCreation = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   void _onItemSelected(int index) {
     Navigator.pop(context);
@@ -71,10 +70,22 @@ class _AjoutproduitState extends State<Ajoutproduit> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Pre-remplir le champ
+    fournisseurName.text = widget.supplier.fournisseurName;
+    fournisseurAdress.text = widget.supplier.fournisseurAdress;
+    nif.text = widget.supplier.nif;
+    stat.text = widget.supplier.stat;
+    contact.text = widget.supplier.contact;
+    dateCreation.text = widget.supplier.dateCreation;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: Sidebar(onItemSelected: _onItemSelected), // add sidebar
+      drawer: Sidebar(onItemSelected: _onItemSelected),
       body: Center(
         child: SingleChildScrollView(
           child: Form(
@@ -87,15 +98,15 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Add product",
+                        "Modifier le fournisseur",
                         style: TextStyle(
-                            fontSize: 40, fontWeight: FontWeight.bold),
+                            fontSize: 30, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // Product name
+                  ///NAME///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -106,22 +117,22 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nameProduit,
+                      controller: fournisseurName,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Product name required";
+                          return "Nom du produit obligatoire";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
-                        icon: Icon(Icons.category),
+                        icon: Icon(Icons.text_format),
                         border: InputBorder.none,
-                        hintText: "Product name",
+                        hintText: "Nom du produit",
                       ),
                     ),
                   ),
 
-                  // Quantity
+                  ///QUANTITY///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -132,26 +143,17 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: quantity,
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Quantity required";
-                        }
-                        if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un nombre valide";
-                        }
-                        return null;
-                      },
+                      controller: fournisseurAdress,
+                      keyboardType: TextInputType.text,
                       decoration: const InputDecoration(
-                        icon: Icon(Icons.format_list_numbered),
+                        icon: Icon(Icons.home),
                         border: InputBorder.none,
                         hintText: "Quantité",
                       ),
                     ),
                   ),
 
-                  // unity
+                  ///NIF///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -162,46 +164,16 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: unity,
+                      controller: nif,
                       keyboardType: TextInputType.text,
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.text_fields_sharp),
-                        border: InputBorder.none,
-                        hintText: "Unity",
-                      ),
-                    ),
-                  ),
-                  // Price
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(.2),
-                    ),
-                    height: 60,
-                    child: TextFormField(
-                      controller: price,
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Price required";
-                        }
-                        if (double.tryParse(value) == null) {
-                          return "Please enter a price";
-                        }
-                        return null;
-                      },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.money),
                         border: InputBorder.none,
-                        hintText: "Price per unit",
                       ),
                     ),
                   ),
 
-                  // Description
+                  ///DESCRIPTION///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -212,7 +184,7 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: description,
+                      controller: stat,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.description),
                         border: InputBorder.none,
@@ -233,32 +205,25 @@ class _AjoutproduitState extends State<Ajoutproduit> {
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db
-                              .addProduct(Product(
-                                  name: nameProduit.text,
-                                  quantity: int.tryParse(quantity.text) ?? 0,
-                                  price: double.tryParse(price.text) ?? 0.0,
-                                  description: description.text,
-                                  categoryId: widget.categorie.id,
-                                  unity: unity.text))
-                              .then((value) {
-                            if (value > 0) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Listproduct(),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Adding failed')),
-                              );
-                            }
-                          });
+                          db.updateFournisseur(Supplier(
+                            id: widget.supplier.id,
+                            fournisseurName: fournisseurName.text,
+                            fournisseurAdress: fournisseurAdress.text,
+                            nif: nif.text,
+                            stat: stat.text,
+                            contact: contact.text,
+                            dateCreation: dateCreation.text,
+                          ));
+                          Navigator.pop(context, true);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Fournisseur modifié avec succès"),
+                            ),
+                          );
                         }
                       },
                       child: const Text(
-                        "Add product",
+                        "Modifier",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/function/sqlite.dart';
-import 'package:my_apk/page/fournisseur/editFournisseurs.dart';
+import 'package:my_apk/page/fournisseur/editSupplier.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
@@ -17,7 +17,7 @@ class Fournisseurhome extends StatefulWidget {
 }
 
 class _ListeFournisseurState extends State<Fournisseurhome> {
-  late Future<List<Fournisseur>> _fournisseurFuture;
+  late Future<List<Supplier>> _fournisseurFuture;
 
   @override
   void initState() {
@@ -25,16 +25,16 @@ class _ListeFournisseurState extends State<Fournisseurhome> {
     _fournisseurFuture = getFournisseur();
   }
 
-  Future<List<Fournisseur>> getFournisseur() async {
+  Future<List<Supplier>> getFournisseur() async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
     final List<Map<String, Object?>> fournisseurMaps =
         await db.query('fournisseur');
     return fournisseurMaps.map((fournisseurMap) {
-      return Fournisseur(
+      return Supplier(
         id: fournisseurMap['id'] as int,
-        nomFournisseur: fournisseurMap['nomFournisseur'] as String,
-        addresseFournisseur: fournisseurMap['addresseFournisseur'] as String,
+        fournisseurName: fournisseurMap['fournisseurName'] as String,
+        fournisseurAdress: fournisseurMap['fournisseurAdress'] as String,
         nif: fournisseurMap['nif'] as String,
         stat: fournisseurMap['stat'] as String,
         contact: fournisseurMap['contact'] as String,
@@ -222,7 +222,7 @@ class _ListeFournisseurState extends State<Fournisseurhome> {
         ],
       ),
       drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Fournisseur>>(
+      body: FutureBuilder<List<Supplier>>(
         future: _fournisseurFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -253,7 +253,7 @@ class _ListeFournisseurState extends State<Fournisseurhome> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              fournisseur.nomFournisseur,
+                              fournisseur.fournisseurName,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -276,8 +276,8 @@ class _ListeFournisseurState extends State<Fournisseurhome> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => Editfournisseurs(
-                                            fournisseur: fournisseur),
+                                        builder: (context) =>
+                                            Editsupplier(supplier: fournisseur),
                                       ),
                                     ).then((value) {
                                       if (value == true) {
@@ -301,7 +301,7 @@ class _ListeFournisseurState extends State<Fournisseurhome> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          "Adresse : ${fournisseur.addresseFournisseur}\nContact : ${fournisseur.contact}\nNIF/STAT : ${fournisseur.nif}${fournisseur.stat}",
+                          "Adresse : ${fournisseur.fournisseurAdress}\nContact : ${fournisseur.contact}\nNIF/STAT : ${fournisseur.nif}${fournisseur.stat}",
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.black.withOpacity(0.7),
@@ -327,14 +327,14 @@ class _ListeFournisseurState extends State<Fournisseurhome> {
     );
   }
 
-  void _showDetails(BuildContext context, Fournisseur fournisseur) {
+  void _showDetails(BuildContext context, Supplier supplier) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Détails du fournisseur"),
           content: Text(
-            "Nom : ${fournisseur.nomFournisseur}\nAdresse : ${fournisseur.addresseFournisseur}\nContact : ${fournisseur.contact}\nNIF/STAT : ${fournisseur.nif}\nDate de création : ${fournisseur.dateCreation}",
+            "Nom : ${supplier.fournisseurName}\nAdresse : ${supplier.fournisseurAdress}\nContact : ${supplier.contact}\nNIF/STAT : ${supplier.nif}\nDate de création : ${supplier.dateCreation}",
           ),
           actions: [
             TextButton(
@@ -347,7 +347,7 @@ class _ListeFournisseurState extends State<Fournisseurhome> {
     );
   }
 
-  void _deleteFournisseur(Fournisseur fournisseur) async {
+  void _deleteFournisseur(Supplier fournisseur) async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
     await db.delete(

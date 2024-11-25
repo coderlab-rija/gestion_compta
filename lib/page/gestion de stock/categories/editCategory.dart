@@ -1,30 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:my_apk/database/fournisseur.dart';
+import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
+import 'package:my_apk/page/fournisseur/listSupplier.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Editfournisseurs extends StatefulWidget {
-  final Fournisseur fournisseur;
+class Editcategorie extends StatefulWidget {
+  final Category category;
 
-  const Editfournisseurs({super.key, required this.fournisseur});
+  const Editcategorie({super.key, required this.category});
 
   @override
-  State<Editfournisseurs> createState() => _EditFournisseurState();
+  State<Editcategorie> createState() => _EditproduitState();
 }
 
-class _EditFournisseurState extends State<Editfournisseurs> {
-  final nomFournisseur = TextEditingController();
-  final addresseFournisseur = TextEditingController();
-  final nif = TextEditingController();
-  final stat = TextEditingController();
-  final contact = TextEditingController();
-  final dateCreation = TextEditingController();
+class _EditproduitState extends State<Editcategorie> {
+  final nameProduit = TextEditingController();
+  final descritpion = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   void _onItemSelected(int index) {
@@ -72,13 +68,8 @@ class _EditFournisseurState extends State<Editfournisseurs> {
   @override
   void initState() {
     super.initState();
-    // Pre-remplir le champ
-    nomFournisseur.text = widget.fournisseur.nomFournisseur;
-    addresseFournisseur.text = widget.fournisseur.addresseFournisseur;
-    nif.text = widget.fournisseur.nif;
-    stat.text = widget.fournisseur.stat;
-    contact.text = widget.fournisseur.contact;
-    dateCreation.text = widget.fournisseur.dateCreation;
+    // Pre-fill the field
+    nameProduit.text = widget.category.name;
   }
 
   @override
@@ -98,7 +89,7 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Modifier le fournisseur",
+                        "Edit category",
                         style: TextStyle(
                             fontSize: 30, fontWeight: FontWeight.bold),
                       ),
@@ -117,58 +108,17 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nomFournisseur,
+                      controller: nameProduit,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du produit obligatoire";
+                          return "Category Name required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
-                        icon: Icon(Icons.text_format),
+                        icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du produit",
-                      ),
-                    ),
-                  ),
-
-                  ///QUANTITY///
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(.2),
-                    ),
-                    height: 60,
-                    child: TextFormField(
-                      controller: addresseFournisseur,
-                      keyboardType: TextInputType.text,
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.home),
-                        border: InputBorder.none,
-                        hintText: "Quantité",
-                      ),
-                    ),
-                  ),
-
-                  ///NIF///
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(.2),
-                    ),
-                    height: 60,
-                    child: TextFormField(
-                      controller: nif,
-                      keyboardType: TextInputType.text,
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.money),
-                        border: InputBorder.none,
+                        hintText: "Category Name",
                       ),
                     ),
                   ),
@@ -184,7 +134,7 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: stat,
+                      controller: descritpion,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.description),
                         border: InputBorder.none,
@@ -205,25 +155,20 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db.updateFournisseur(Fournisseur(
-                            id: widget.fournisseur.id,
-                            nomFournisseur: nomFournisseur.text,
-                            addresseFournisseur: addresseFournisseur.text,
-                            nif: nif.text,
-                            stat: stat.text,
-                            contact: contact.text,
-                            dateCreation: dateCreation.text,
-                          ));
+                          db.updateCategory(Category(
+                              id: widget.category.id,
+                              name: nameProduit.text,
+                              description: descritpion.text));
                           Navigator.pop(context, true);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Fournisseur modifié avec succès"),
+                              content: Text("Category successfully modified"),
                             ),
                           );
                         }
                       },
                       child: const Text(
-                        "Modifier",
+                        "Update",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

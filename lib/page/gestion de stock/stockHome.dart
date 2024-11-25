@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/listeCategorie.dart';
+import 'package:my_apk/page/fournisseur/listSupplier.dart';
+import 'package:my_apk/page/gestion%20de%20stock/categories/listCategory.dart';
 import 'package:my_apk/page/gestion%20de%20stock/historiques/historiqueProduit.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
-import 'package:my_apk/page/gestion%20de%20stock/produits/listeProduit.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
