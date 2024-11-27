@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listSupplier.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/listCategory.dart';
 import 'package:my_apk/page/gestion%20de%20stock/historiques/historiqueProduit.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
@@ -36,7 +36,7 @@ class _StockHometState extends State<StockHome> {
       case 2:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
+          MaterialPageRoute(builder: (context) => const Supplierhome()),
         );
         break;
       case 3:

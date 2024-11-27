@@ -4,7 +4,7 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listSupplier.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
@@ -45,7 +45,7 @@ class _EditsupplierState extends State<Editsupplier> {
       case 2:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
+          MaterialPageRoute(builder: (context) => const Supplierhome()),
         );
         break;
       case 3:
@@ -72,7 +72,6 @@ class _EditsupplierState extends State<Editsupplier> {
   @override
   void initState() {
     super.initState();
-    // Pre-remplir le champ
     fournisseurName.text = widget.supplier.fournisseurName;
     fournisseurAdress.text = widget.supplier.fournisseurAdress;
     nif.text = widget.supplier.nif;
@@ -98,7 +97,7 @@ class _EditsupplierState extends State<Editsupplier> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Modifier le fournisseur",
+                        "Eddit suplier",
                         style: TextStyle(
                             fontSize: 30, fontWeight: FontWeight.bold),
                       ),
@@ -106,7 +105,7 @@ class _EditsupplierState extends State<Editsupplier> {
                   ),
                   const SizedBox(height: 20),
 
-                  ///NAME///
+                  ///Supplier name///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -120,19 +119,19 @@ class _EditsupplierState extends State<Editsupplier> {
                       controller: fournisseurName,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du produit obligatoire";
+                          return "Supplier name required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.text_format),
                         border: InputBorder.none,
-                        hintText: "Nom du produit",
+                        hintText: "Supplier name",
                       ),
                     ),
                   ),
 
-                  ///QUANTITY///
+                  ///ADDRESS///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -148,7 +147,7 @@ class _EditsupplierState extends State<Editsupplier> {
                       decoration: const InputDecoration(
                         icon: Icon(Icons.home),
                         border: InputBorder.none,
-                        hintText: "Quantité",
+                        hintText: "Address",
                       ),
                     ),
                   ),
@@ -173,7 +172,7 @@ class _EditsupplierState extends State<Editsupplier> {
                     ),
                   ),
 
-                  ///DESCRIPTION///
+                  ///STAT///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -205,7 +204,7 @@ class _EditsupplierState extends State<Editsupplier> {
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db.updateFournisseur(Supplier(
+                          db.updateSupplier(Supplier(
                             id: widget.supplier.id,
                             fournisseurName: fournisseurName.text,
                             fournisseurAdress: fournisseurAdress.text,
@@ -217,13 +216,13 @@ class _EditsupplierState extends State<Editsupplier> {
                           Navigator.pop(context, true);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Fournisseur modifié avec succès"),
+                              content: Text("Supplier changed successfully"),
                             ),
                           );
                         }
                       },
                       child: const Text(
-                        "Modifier",
+                        "Update",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

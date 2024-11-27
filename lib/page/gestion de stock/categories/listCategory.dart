@@ -4,7 +4,7 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listSupplier.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/addCategory.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/editCategory.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/addProduct.dart';
@@ -16,10 +16,10 @@ class Listcategory extends StatefulWidget {
   const Listcategory({super.key});
 
   @override
-  State<Listcategory> createState() => _ListeCategorieState();
+  State<Listcategory> createState() => _ListcategoryState();
 }
 
-class _ListeCategorieState extends State<Listcategory> {
+class _ListcategoryState extends State<Listcategory> {
   late Future<List<Category>> _categoryFuture;
 
   @override
@@ -38,39 +38,27 @@ class _ListeCategorieState extends State<Listcategory> {
     switch (index) {
       case 0:
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Profil()),
-        );
+            context, MaterialPageRoute(builder: (context) => const Profil()));
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const StockHome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StockHome()));
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Facturationhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 4:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Dashboard()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
         break;
       case 5:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
     }
   }
@@ -92,7 +80,7 @@ class _ListeCategorieState extends State<Listcategory> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("List of categories"),
+        title: const Text("List of Categories"),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -115,14 +103,14 @@ class _ListeCategorieState extends State<Listcategory> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text("No categories found"));
           } else {
-            final category = snapshot.data!;
+            final categories = snapshot.data!;
             return ListView.builder(
-              itemCount: category.length,
+              itemCount: categories.length,
               itemBuilder: (context, index) {
-                final response = category[index];
+                final category = categories[index];
                 return Card(
                   margin:
-                      const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -136,7 +124,7 @@ class _ListeCategorieState extends State<Listcategory> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              response.name,
+                              category.name,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -153,7 +141,7 @@ class _ListeCategorieState extends State<Listcategory> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Ajoutproduit(categorie: response),
+                                            Ajoutproduit(categorie: category),
                                       ),
                                     );
                                   },
@@ -162,7 +150,7 @@ class _ListeCategorieState extends State<Listcategory> {
                                   icon: const Icon(Icons.info,
                                       color: Colors.blue),
                                   onPressed: () {
-                                    _showDetails(context, response);
+                                    _showDetails(context, category);
                                   },
                                 ),
                                 IconButton(
@@ -173,7 +161,7 @@ class _ListeCategorieState extends State<Listcategory> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Editcategorie(category: response),
+                                            Editcategorie(category: category),
                                       ),
                                     ).then((value) {
                                       if (value == true) {
@@ -188,7 +176,7 @@ class _ListeCategorieState extends State<Listcategory> {
                                   icon: const Icon(Icons.delete,
                                       color: Colors.red),
                                   onPressed: () {
-                                    _deleteCategorie(response);
+                                    _deleteCategorie(category);
                                   },
                                 ),
                               ],
@@ -201,9 +189,8 @@ class _ListeCategorieState extends State<Listcategory> {
                             Icon(Icons.description, color: Colors.grey[700]),
                             const SizedBox(width: 8),
                             Expanded(
-                              // Utilisation de Expanded pour permettre au texte de s'ajuster
                               child: Text(
-                                "${response.description}",
+                                category.description,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey[800],
@@ -226,19 +213,19 @@ class _ListeCategorieState extends State<Listcategory> {
     );
   }
 
-  void _showDetails(BuildContext context, Category categorie) {
+  void _showDetails(BuildContext context, Category category) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Category details"),
+          title: const Text("Category Details"),
           content: Text(
-            "Name: ${categorie.name}\nDescription: ${categorie.description}",
+            "Name: ${category.name}\nDescription: ${category.description}",
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancel"),
+              child: const Text("Close"),
             ),
           ],
         );
@@ -246,13 +233,13 @@ class _ListeCategorieState extends State<Listcategory> {
     );
   }
 
-  void _deleteCategorie(Category categorie) {
+  void _deleteCategorie(Category category) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Confirm deletion"),
-          content: Text("Are you sure you want to delete? ${categorie.name} ?"),
+          title: const Text("Confirm Deletion"),
+          content: Text("Are you sure you want to delete ${category.name}?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -261,15 +248,15 @@ class _ListeCategorieState extends State<Listcategory> {
             TextButton(
               onPressed: () async {
                 final dbHelper = DataBaseHelper();
-                final result = await dbHelper.deleteCategorie(categorie.id!);
-
+                final result = await dbHelper.deleteCategory(category.id!);
                 if (result != -1) {
                   setState(() {
                     _categoryFuture = fetchCategory();
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Category deleted successfully')),
+                      content: Text('Category deleted successfully'),
+                    ),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -278,7 +265,7 @@ class _ListeCategorieState extends State<Listcategory> {
                 }
                 Navigator.of(context).pop();
               },
-              child: const Text("Deleted"),
+              child: const Text("Delete"),
             ),
           ],
         );

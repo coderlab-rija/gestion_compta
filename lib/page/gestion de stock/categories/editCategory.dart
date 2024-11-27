@@ -4,7 +4,7 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listSupplier.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
@@ -15,12 +15,12 @@ class Editcategorie extends StatefulWidget {
   const Editcategorie({super.key, required this.category});
 
   @override
-  State<Editcategorie> createState() => _EditproduitState();
+  State<Editcategorie> createState() => _EditcategorieState();
 }
 
-class _EditproduitState extends State<Editcategorie> {
-  final nameProduit = TextEditingController();
-  final descritpion = TextEditingController();
+class _EditcategorieState extends State<Editcategorie> {
+  final nameCategorie = TextEditingController();
+  final descriptionCategorie = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   void _onItemSelected(int index) {
@@ -41,7 +41,7 @@ class _EditproduitState extends State<Editcategorie> {
       case 2:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
+          MaterialPageRoute(builder: (context) => const Supplierhome()),
         );
         break;
       case 3:
@@ -68,8 +68,8 @@ class _EditproduitState extends State<Editcategorie> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill the field
-    nameProduit.text = widget.category.name;
+    nameCategorie.text = widget.category.name;
+    descriptionCategorie.text = widget.category.description;
   }
 
   @override
@@ -89,15 +89,17 @@ class _EditproduitState extends State<Editcategorie> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Edit category",
+                        "Edit Category",
                         style: TextStyle(
-                            fontSize: 30, fontWeight: FontWeight.bold),
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  ///NAME///
+                  /// NAME ///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -108,10 +110,10 @@ class _EditproduitState extends State<Editcategorie> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nameProduit,
+                      controller: nameCategorie,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Category Name required";
+                          return "Category name required";
                         }
                         return null;
                       },
@@ -123,7 +125,7 @@ class _EditproduitState extends State<Editcategorie> {
                     ),
                   ),
 
-                  ///DESCRIPTION///
+                  /// DESCRIPTION ///
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -134,7 +136,7 @@ class _EditproduitState extends State<Editcategorie> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: descritpion,
+                      controller: descriptionCategorie,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.description),
                         border: InputBorder.none,
@@ -156,9 +158,10 @@ class _EditproduitState extends State<Editcategorie> {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
                           db.updateCategory(Category(
-                              id: widget.category.id,
-                              name: nameProduit.text,
-                              description: descritpion.text));
+                            id: widget.category.id,
+                            name: nameCategorie.text,
+                            description: descriptionCategorie.text,
+                          ));
                           Navigator.pop(context, true);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(

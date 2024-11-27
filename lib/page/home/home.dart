@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listSupplier.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const Profil(),
     const StockHome(),
-    const Fournisseurhome(),
+    const Supplierhome(),
     const Facturationhome(),
     const Dashboard(),
     const LoginScreen(),

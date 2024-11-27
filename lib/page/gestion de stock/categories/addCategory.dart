@@ -4,7 +4,7 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listSupplier.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/listCategory.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -40,7 +40,7 @@ class _AddcategoryState extends State<Addcategory> {
       case 2:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
+          MaterialPageRoute(builder: (context) => const Supplierhome()),
         );
         break;
       case 3:

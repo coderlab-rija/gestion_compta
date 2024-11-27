@@ -10,7 +10,7 @@ import 'package:path/path.dart';
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'FISCAComptes.db');
+    final path = join(databasePath, 'rija-base.db');
     return openDatabase(
       path,
       version: 1,
@@ -65,7 +65,7 @@ class DataBaseHelper {
     }
   }
 
-  Future<List<Utilisateur>> getUtilisateur() async {
+  Future<List<Utilisateur>> getUsers() async {
     final db = await initDB();
     final List<Map<String, Object?>> usersMaps = await db.query('utilisateur');
 
@@ -160,7 +160,7 @@ class DataBaseHelper {
     }).toList();
   }
 
-  Future<List<Supplier>> getFournisseur() async {
+  Future<List<Supplier>> getSupplier() async {
     final db = await initDB();
     final List<Map<String, Object?>> fournisseurMaps =
         await db.query('fournisseur');
@@ -220,7 +220,7 @@ class DataBaseHelper {
     }
   }
 
-  Future<void> updateFournisseur(Supplier supplier) async {
+  Future<void> updateSupplier(Supplier supplier) async {
     final db = await initDB();
     await db.update(
       'fournisseur',
@@ -243,7 +243,7 @@ class DataBaseHelper {
     }
   }
 
-  Future<int> deleteCategorie(int id) async {
+  Future<int> deleteCategory(int id) async {
     try {
       final Database db = await initDB();
       return await db.delete(
