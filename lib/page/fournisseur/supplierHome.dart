@@ -214,150 +214,160 @@ class _ListSupplierState extends State<Supplierhome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("List of all suppliers"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addFournisseur,
+        title: const Text("Supplier list"),
+      ),
+      drawer: Sidebar(onItemSelected: _onItemSelected),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 80),
+            child: FutureBuilder<List<Supplier>>(
+              future: _fournisseurFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text("No suppliers found"));
+                } else {
+                  final fournisseurs = snapshot.data!;
+                  return ListView.builder(
+                    itemCount: fournisseurs.length,
+                    itemBuilder: (context, index) {
+                      final fournisseur = fournisseurs[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 2, horizontal: 16),
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    fournisseur.fournisseurName,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.teal,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.info,
+                                            color: Colors.blue),
+                                        onPressed: () {
+                                          _showDetails(context, fournisseur);
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit,
+                                            color: Colors.orange),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  Editsupplier(
+                                                      supplier: fournisseur),
+                                            ),
+                                          ).then((value) {
+                                            if (value == true) {
+                                              setState(() {
+                                                _fournisseurFuture =
+                                                    getSupplier();
+                                              });
+                                            }
+                                          });
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red),
+                                        onPressed: () {
+                                          _deleteFournisseur(fournisseur);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text("Adresse: ${fournisseur.fournisseurAdress}"),
+                              Text("Contact: ${fournisseur.contact}"),
+                              Text("NIF: ${fournisseur.nif}"),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: ElevatedButton(
+              onPressed: _addFournisseur,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: const Text("Ajouter Fournisseur"),
+            ),
           ),
         ],
       ),
-      drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Supplier>>(
-        future: _fournisseurFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No suppliers found"));
-          } else {
-            final fournisseurs = snapshot.data!;
-            return ListView.builder(
-              itemCount: fournisseurs.length,
-              itemBuilder: (context, index) {
-                final fournisseur = fournisseurs[index];
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              fournisseur.fournisseurName,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.info,
-                                      color: Colors.blue),
-                                  onPressed: () {
-                                    _showDetails(context, fournisseur);
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.orange),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            Editsupplier(supplier: fournisseur),
-                                      ),
-                                    ).then((value) {
-                                      if (value == true) {
-                                        setState(() {
-                                          _fournisseurFuture = getSupplier();
-                                        });
-                                      }
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    _deleteFournisseur(fournisseur);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Address : ${fournisseur.fournisseurAdress}\nContact : ${fournisseur.contact}\nNIF/STAT : ${fournisseur.nif}${fournisseur.stat}",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black.withOpacity(0.7),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Creation date : ${fournisseur.dateCreation}",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black.withOpacity(0.6),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  void _showDetails(BuildContext context, Supplier supplier) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Supplier details"),
-          content: Text(
-            "Name : ${supplier.fournisseurName}\nAdress : ${supplier.fournisseurAdress}\nContact : ${supplier.contact}\nNIF/STAT : ${supplier.nif}\nDate de création : ${supplier.dateCreation}",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Close"),
-            ),
-          ],
-        );
-      },
     );
   }
 
   void _deleteFournisseur(Supplier fournisseur) async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
-    await db.delete(
-      'fournisseur',
-      where: 'id = ?',
-      whereArgs: [fournisseur.id],
-    );
+    await db
+        .delete('fournisseur', where: 'id = ?', whereArgs: [fournisseur.id]);
     setState(() {
       _fournisseurFuture = getSupplier();
     });
+  }
+
+  void _showDetails(BuildContext context, Supplier fournisseur) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(fournisseur.fournisseurName),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Adresse: ${fournisseur.fournisseurAdress}"),
+              Text("NIF: ${fournisseur.nif}"),
+              Text("Contact: ${fournisseur.contact}"),
+              Text("Date de Création: ${fournisseur.dateCreation}"),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Fermer"),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
