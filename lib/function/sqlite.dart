@@ -1,16 +1,19 @@
 import 'dart:async';
 import 'package:my_apk/database/fournisseur.dart';
+import 'package:my_apk/database/hisotriqueCategory.dart';
+import 'package:my_apk/database/hisotriqueProduit.dart';
 import 'package:my_apk/database/produits.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/unite.dart';
 import 'package:my_apk/database/users.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'rija-base.db');
+    final path = join(databasePath, 'rija-base13.db');
     return openDatabase(
       path,
       version: 1,
@@ -34,6 +37,28 @@ class DataBaseHelper {
         await db.execute(
           'CREATE TABLE unite (id INTEGER PRIMARY KEY AUTOINCREMENT, nomFournisseur TEXT NOT NULL)',
         );
+
+        await db.execute('''
+          CREATE TABLE historique_categorie (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action TEXT NOT NULL,
+            categoryId TEXT NOT NULL,
+            categoryName TEXT NOT NULL,
+            username TEXT NOT NULL,
+            dateAction TEXT NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE historique_products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action TEXT NOT NULL,
+            produitId TEXT NOT NULL,
+            produitName TEXT NOT NULL,
+            username TEXT NOT NULL,
+            dateAction TEXT NOT NULL
+          )
+        ''');
       },
     );
   }
@@ -128,23 +153,105 @@ class DataBaseHelper {
   Future<int> addCategory(Category category) async {
     try {
       final Database db = await initDB();
-      return await db.insert(
+
+      int categoryId = await db.insert(
         'category',
         category.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+
+      if (categoryId != -1) {
+        final prefs = await SharedPreferences.getInstance();
+        String username = prefs.getString('username') ?? 'Unknown';
+        final historique = HistoriqueCategory(
+          action: 'insertion',
+          categoryId: categoryId.toString(),
+          categoryName: category.name,
+          username: username,
+          dateAction: DateTime.now().toIso8601String(),
+        );
+        await db.insert(
+          'historique_categorie',
+          historique.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+
+      return categoryId;
     } catch (e) {
+      print("Error adding category: $e");
       return -1;
     }
   }
 
+  Future<void> addHistoryEntry(
+      String action, String categoryId, String categoryName) async {
+    final prefs = await SharedPreferences.getInstance();
+    String username = prefs.getString('username') ?? 'Unknown';
+
+    final Database db = await initDB();
+    await db.insert('historique_categorie', {
+      'action': action,
+      'categoryId': categoryId,
+      'categoryName': categoryName,
+      'username': username,
+      'dateAction': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getAllHistoriqueCategory() async {
+    final Database db = await initDB();
+    return await db.query(
+      'historique_categorie',
+      orderBy: 'dateAction DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getAllHistoriqueProduct() async {
+    final Database db = await initDB();
+    return await db.query(
+      'historique_products',
+      orderBy: 'dateAction DESC',
+    );
+  }
+
+  // Future<void> updateCategory(Category category) async {
+  //   final db = await initDB();
+  //   await db.update(
+  //     'category',
+  //     category.toMap(),
+  //     where: 'id = ?',
+  //     whereArgs: [category.id],
+  //   );
+  // }
+
   Future<void> updateCategory(Category category) async {
     final db = await initDB();
+
     await db.update(
       'category',
       category.toMap(),
       where: 'id = ?',
       whereArgs: [category.id],
+    );
+
+    String action = await getActionFromSharedPreferences();
+
+    final prefs = await SharedPreferences.getInstance();
+    String username = prefs.getString('username') ?? 'Unknown';
+
+    final historique = HistoriqueCategory(
+      action: action,
+      categoryId: category.id.toString(),
+      categoryName: category.name,
+      username: username,
+      dateAction: DateTime.now().toIso8601String(),
+    );
+
+    await db.insert(
+      'historique_categorie',
+      historique.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
@@ -178,23 +285,55 @@ class DataBaseHelper {
     }).toList();
   }
 
-  Future<int> addProduct(Product produit) async {
-    final Database db = await initDB();
+  Future<int> addProduct(Product product) async {
+    try {
+      final Database db = await initDB();
 
-    List<Map<String, dynamic>> categorieExistante = await db.query(
-      'category',
-      where: 'id = ?',
-      whereArgs: [produit.categoryId],
-    );
+      int productId = await db.insert(
+        'product',
+        product.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
 
-    if (categorieExistante.isEmpty) {
+      if (productId != -1) {
+        final prefs = await SharedPreferences.getInstance();
+        String username = prefs.getString('username') ?? 'Unknown';
+
+        final historique = Hisotriqueproduct(
+          action: 'insertion',
+          produitId: productId.toString(),
+          produitName: product.name,
+          username: username,
+          dateAction: DateTime.now().toIso8601String(),
+        );
+
+        await db.insert(
+          'historique_products',
+          historique.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+
+      return productId;
+    } catch (e) {
+      print("Error adding product: $e");
       return -1;
     }
-    return await db.insert(
-      'product',
-      produit.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+  }
+
+  Future<void> addProductEntry(
+      String action, String produitId, String produitName) async {
+    final prefs = await SharedPreferences.getInstance();
+    String username = prefs.getString('username') ?? 'Unknown';
+
+    final Database db = await initDB();
+    await db.insert('historique_products', {
+      'action': action,
+      'produitId': produitId,
+      'produitName': produitName,
+      'username': username,
+      'dateAction': DateTime.now().toIso8601String(),
+    });
   }
 
   Future<void> updateProduct(Product product) async {
@@ -205,7 +344,56 @@ class DataBaseHelper {
       where: 'id = ?',
       whereArgs: [product.id],
     );
+
+    String action = await getActionProductFromSharedPreferences();
+
+    final prefs = await SharedPreferences.getInstance();
+    String username = prefs.getString('username') ?? 'Unknown';
+
+    final historique = Hisotriqueproduct(
+      action: action,
+      produitId: product.id.toString(),
+      produitName: product.name,
+      username: username,
+      dateAction: DateTime.now().toIso8601String(),
+    );
+
+    await db.insert(
+      'historique_products',
+      historique.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
+
+  // Future<void> updateCategory(Category category) async {
+  //   final db = await initDB();
+
+  //   await db.update(
+  //     'category',
+  //     category.toMap(),
+  //     where: 'id = ?',
+  //     whereArgs: [category.id],
+  //   );
+
+  //   String action = await getActionFromSharedPreferences();
+
+  //   final prefs = await SharedPreferences.getInstance();
+  //   String username = prefs.getString('username') ?? 'Unknown';
+
+  //   final historique = HistoriqueCategory(
+  //     action: action,
+  //     categoryId: category.id.toString(),
+  //     categoryName: category.name,
+  //     username: username,
+  //     dateAction: DateTime.now().toIso8601String(),
+  //   );
+
+  //   await db.insert(
+  //     'historique_categorie',
+  //     historique.toMap(),
+  //     conflictAlgorithm: ConflictAlgorithm.replace,
+  //   );
+  // }
 
   Future<int> addSupplier(Supplier supplier) async {
     try {
@@ -261,6 +449,16 @@ class DataBaseHelper {
     await db.delete('session');
   }
 
+  Future<String> getActionFromSharedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('category_action') ?? 'unknown';
+  }
+
+  Future<String> getActionProductFromSharedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('product_action') ?? 'unknown';
+  }
+
   // Future<List<Produits>> getProduits() async {
   //   final db = await initDB();
   //   final List<Map<String, Object?>> productsMaps = await db.query('produits');
@@ -282,6 +480,38 @@ class DataBaseHelper {
   //     return await db.insert(
   //       'produits',
   //       produit.toMap(),
+  //       conflictAlgorithm: ConflictAlgorithm.replace,
+  //     );
+  //   } catch (e) {
+  //     return -1;
+  //   }
+  // }
+
+  // Future<int> addProduct(Product produit) async {
+  //   final Database db = await initDB();
+
+  //   List<Map<String, dynamic>> categorieExistante = await db.query(
+  //     'category',
+  //     where: 'id = ?',
+  //     whereArgs: [produit.categoryId],
+  //   );
+
+  //   if (categorieExistante.isEmpty) {
+  //     return -1;
+  //   }
+  //   return await db.insert(
+  //     'product',
+  //     produit.toMap(),
+  //     conflictAlgorithm: ConflictAlgorithm.replace,
+  //   );
+  // }
+
+  // Future<int> addCategory(Category category) async {
+  //   try {
+  //     final Database db = await initDB();
+  //     return await db.insert(
+  //       'category',
+  //       category.toMap(),
   //       conflictAlgorithm: ConflictAlgorithm.replace,
   //     );
   //   } catch (e) {

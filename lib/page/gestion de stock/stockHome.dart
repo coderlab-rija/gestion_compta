@@ -4,7 +4,7 @@ import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/listCategory.dart';
-import 'package:my_apk/page/gestion%20de%20stock/historiques/historiqueProduit.dart';
+import 'package:my_apk/page/gestion%20de%20stock/historiques/historique.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -74,7 +74,7 @@ class _StockHometState extends State<StockHome> {
             const SizedBox(height: 20),
             Expanded(
               child: GridView.count(
-                crossAxisCount: 2, // Nombre de colonnes
+                crossAxisCount: 2, // Number of columns
                 crossAxisSpacing: 10.0,
                 mainAxisSpacing: 10.0,
                 children: [
@@ -121,7 +121,7 @@ class _StockHometState extends State<StockHome> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Historiqueproduit(),
+                          builder: (context) => const Historique(),
                         ),
                       );
                     },

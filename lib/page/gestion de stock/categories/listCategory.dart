@@ -11,6 +11,7 @@ import 'package:my_apk/page/gestion%20de%20stock/produits/addProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Listcategory extends StatefulWidget {
   const Listcategory({super.key});
@@ -26,6 +27,11 @@ class _ListcategoryState extends State<Listcategory> {
   void initState() {
     super.initState();
     _categoryFuture = fetchCategory();
+  }
+
+  Future<void> setActionInSharedPreferences(String action) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('category_action', action);
   }
 
   Future<List<Category>> fetchCategory() async {
@@ -136,7 +142,9 @@ class _ListcategoryState extends State<Listcategory> {
                                 IconButton(
                                   icon:
                                       const Icon(Icons.add, color: Colors.blue),
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    await setActionInSharedPreferences(
+                                        'Modification');
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -156,7 +164,9 @@ class _ListcategoryState extends State<Listcategory> {
                                 IconButton(
                                   icon: const Icon(Icons.edit,
                                       color: Colors.orange),
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    await setActionInSharedPreferences(
+                                        'Modification');
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(

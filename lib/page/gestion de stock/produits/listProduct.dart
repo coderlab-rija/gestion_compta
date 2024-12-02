@@ -10,6 +10,7 @@ import 'package:my_apk/page/gestion%20de%20stock/produits/editProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Listproduct extends StatefulWidget {
   const Listproduct({super.key});
@@ -28,6 +29,11 @@ class _ListproduitState extends State<Listproduct> {
     super.initState();
     _productFuture = getProduct();
     _categoryFuture = getCategory();
+  }
+
+  Future<void> setActionProductInSharedPreferences(String action) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('product_action', action);
   }
 
   Future<List<Product>> getProduct() async {
@@ -211,7 +217,9 @@ class _ListproduitState extends State<Listproduct> {
                                 IconButton(
                                   icon: const Icon(Icons.edit,
                                       color: Colors.orange),
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    await setActionProductInSharedPreferences(
+                                        'Product updated');
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(

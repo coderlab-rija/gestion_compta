@@ -23,6 +23,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoginTrue = false;
 
   Future<void> login() async {
+    print("Username input value: ${username.text}");
+
     int? userId = await db.login(Utilisateur(
       username: username.text,
       lastname: lastname.text,
@@ -31,10 +33,13 @@ class _LoginScreenState extends State<LoginScreen> {
     ));
 
     if (userId != null) {
-      print('User login with id : $userId');
+      print('User login with id: $userId');
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('userId', userId);
-      await prefs.setString('userPassword', password.text);
+
+      await getUtilisateurById(userId);
+
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -43,6 +48,21 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         isLoginTrue = true;
       });
+    }
+  }
+
+  Future<void> getUtilisateurById(int userId) async {
+    final utilisateur = await db.getUtilisateurById(userId);
+
+    if (utilisateur != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('username', utilisateur.username);
+      await prefs.setString('lastname', utilisateur.lastname);
+      await prefs.setString('email', utilisateur.email);
+
+      print("Utilisateur récupéré : ${utilisateur.username}");
+    } else {
+      print("Erreur : utilisateur non trouvé");
     }
   }
 

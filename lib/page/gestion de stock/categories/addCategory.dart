@@ -67,7 +67,7 @@ class _AddcategoryState extends State<Addcategory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: const Text('Add a Category')),
       drawer: Sidebar(onItemSelected: _onItemSelected),
       body: Center(
         child: SingleChildScrollView(
@@ -78,18 +78,12 @@ class _AddcategoryState extends State<Addcategory> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const ListTile(
-                    title: Center(
-                      child: Text(
-                        "Add a category",
-                        style: TextStyle(
-                            fontSize: 30, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                  const Text(
+                    "Add a category",
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
 
-                  /// Category Name
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -111,11 +105,9 @@ class _AddcategoryState extends State<Addcategory> {
                         border: InputBorder.none,
                         hintText: "Category Name",
                       ),
-                      maxLines: 1,
                     ),
                   ),
 
-                  /// Description
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -128,13 +120,11 @@ class _AddcategoryState extends State<Addcategory> {
                       controller: description,
                       keyboardType: TextInputType.multiline,
                       maxLines: null,
-                      minLines: 1,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.description),
                         border: InputBorder.none,
                         hintText: "Description",
                       ),
-                      expands: false,
                     ),
                   ),
 
@@ -147,27 +137,31 @@ class _AddcategoryState extends State<Addcategory> {
                       color: Colors.deepPurple,
                     ),
                     child: TextButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db
-                              .addCategory(Category(
+                          int categoryId = await db.addCategory(Category(
                             name: nameCategorie.text,
                             description: description.text,
-                          ))
-                              .then((value) {
-                            if (value > 0) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const Listcategory()),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Adding failed')),
-                              );
-                            }
-                          });
+                          ));
+
+                          if (categoryId > 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Category added successfully!')),
+                            );
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const Listcategory()),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Failed to add category')),
+                            );
+                          }
                         }
                       },
                       child: const Text(
