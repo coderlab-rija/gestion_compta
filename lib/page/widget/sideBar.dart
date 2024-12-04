@@ -24,28 +24,38 @@ class Sidebar extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.inventory),
-            title: const Text('Stock Management'),
+            title: const Text('Stock'),
             onTap: () => onItemSelected(1),
           ),
           ListTile(
             leading: const Icon(Icons.people),
-            title: const Text('Supplier Management'),
+            title: const Text('Gestion fournisseur'),
             onTap: () => onItemSelected(2),
+          ),
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('Gestion client'),
+            onTap: () => onItemSelected(3),
           ),
           ListTile(
             leading: const Icon(Icons.money),
             title: const Text('Facturation'),
-            onTap: () => onItemSelected(3),
+            onTap: () => onItemSelected(4),
           ),
           ListTile(
             leading: const Icon(Icons.dashboard),
             title: const Text('Dashboard'),
-            onTap: () => onItemSelected(4),
+            onTap: () => onItemSelected(5),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Configuration'),
+            onTap: () => onItemSelected(6),
           ),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Log out'),
-            onTap: () => onItemSelected(5),
+            onTap: () => onItemSelected(7),
           ),
         ],
       ),

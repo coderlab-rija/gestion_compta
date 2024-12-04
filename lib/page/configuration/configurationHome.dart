@@ -1,61 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:my_apk/page/authentification/login.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
+import 'package:my_apk/page/configuration/type%20produit/listTypeProduits.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/listCategory.dart';
+import 'package:my_apk/page/configuration/unite%20de%20gestion/listUnity.dart';
 import 'package:my_apk/page/gestion%20de%20stock/historiques/historique.dart';
-import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
+import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class StockHome extends StatefulWidget {
-  const StockHome({super.key});
+class Configurationhome extends StatefulWidget {
+  const Configurationhome({super.key});
 
   @override
-  State<StockHome> createState() => _StockHometState();
+  State<Configurationhome> createState() => _StockHometState();
 }
 
-class _StockHometState extends State<StockHome> {
+class _StockHometState extends State<Configurationhome> {
   void _onItemSelected(int index) {
     Navigator.pop(context);
     switch (index) {
       case 0:
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Profil()),
-        );
+            context, MaterialPageRoute(builder: (context) => const Profil()));
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const StockHome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StockHome()));
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Supplierhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Facturationhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 4:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Dashboard()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 5:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 6:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
     }
   }
@@ -79,20 +77,20 @@ class _StockHometState extends State<StockHome> {
                 mainAxisSpacing: 10.0,
                 children: [
                   _buildGridItem(
-                    title: 'Produits',
-                    icon: Icons.category,
+                    title: 'Unité de gestion',
+                    icon: Icons.balance,
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Listcategory(),
+                          builder: (context) => const Listunity(),
                         ),
                       );
                     },
                   ),
                   _buildGridItem(
-                    title: 'Stocks',
-                    icon: Icons.inventory,
+                    title: 'Gestions des utilisateurs',
+                    icon: Icons.people_sharp,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -103,20 +101,20 @@ class _StockHometState extends State<StockHome> {
                     },
                   ),
                   _buildGridItem(
-                    title: 'Mouvement de stocks',
-                    icon: Icons.monetization_on_outlined,
+                    title: 'Type de produits',
+                    icon: Icons.category_outlined,
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Inventaire(),
+                          builder: (context) => const ListTypeproduits(),
                         ),
                       );
                     },
                   ),
                   _buildGridItem(
-                    title: 'Historic',
-                    icon: Icons.history,
+                    title: 'Mode de paiement',
+                    icon: Icons.price_change,
                     onTap: () {
                       Navigator.push(
                         context,

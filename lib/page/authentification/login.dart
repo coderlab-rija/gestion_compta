@@ -23,8 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoginTrue = false;
 
   Future<void> login() async {
-    print("Username input value: ${username.text}");
-
     int? userId = await db.login(Utilisateur(
       username: username.text,
       lastname: lastname.text,
@@ -34,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (userId != null) {
       print('User login with id: $userId');
-
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('userId', userId);
 
@@ -59,10 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('username', utilisateur.username);
       await prefs.setString('lastname', utilisateur.lastname);
       await prefs.setString('email', utilisateur.email);
-
-      print("Utilisateur récupéré : ${utilisateur.username}");
     } else {
-      print("Erreur : utilisateur non trouvé");
+      print("Error: User not found");
     }
   }
 

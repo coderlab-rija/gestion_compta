@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
@@ -21,8 +23,10 @@ class _HomePageState extends State<HomePage> {
     const Profil(),
     const StockHome(),
     const Supplierhome(),
+    const ClientHome(),
     const Facturationhome(),
     const Dashboard(),
+    const Configurationhome(),
     const LoginScreen(),
   ];
 
@@ -43,12 +47,16 @@ class _HomePageState extends State<HomePage> {
               : _selectedIndex == 1
                   ? 'Inventory Management'
                   : _selectedIndex == 2
-                      ? 'Supplier Management'
+                      ? 'Listes des fournisseurs'
                       : _selectedIndex == 3
-                          ? 'Facturation'
+                          ? 'Listes des clients'
                           : _selectedIndex == 4
-                              ? 'Dashboard'
-                              : 'Log out',
+                              ? 'Facturation'
+                              : _selectedIndex == 5
+                                  ? 'Dashboard'
+                                  : _selectedIndex == 6
+                                      ? 'Configuration'
+                                      : 'Log out',
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),

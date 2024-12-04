@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/listCategory.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
@@ -27,39 +29,35 @@ class _AddcategoryState extends State<Addcategory> {
     switch (index) {
       case 0:
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Profil()),
-        );
+            context, MaterialPageRoute(builder: (context) => const Profil()));
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const StockHome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StockHome()));
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Supplierhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Facturationhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 4:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Dashboard()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 5:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 6:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
     }
   }
@@ -83,7 +81,6 @@ class _AddcategoryState extends State<Addcategory> {
                     style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
-
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -107,7 +104,6 @@ class _AddcategoryState extends State<Addcategory> {
                       ),
                     ),
                   ),
-
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -127,7 +123,6 @@ class _AddcategoryState extends State<Addcategory> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 10),
                   Container(
                     height: 45,

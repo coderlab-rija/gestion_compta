@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:my_apk/database/client.dart';
 import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/database/hisotriqueCategory.dart';
 import 'package:my_apk/database/hisotriqueProduit.dart';
@@ -13,7 +14,7 @@ import 'package:path/path.dart';
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'rija-base13.db');
+    final path = join(databasePath, 'rija-base16.db');
     return openDatabase(
       path,
       version: 1,
@@ -31,12 +32,28 @@ class DataBaseHelper {
         );
 
         await db.execute(
+          'CREATE TABLE unity (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
+        );
+
+        await db.execute(
           'CREATE TABLE fournisseur (id INTEGER PRIMARY KEY AUTOINCREMENT, fournisseurName TEXT NOT NULL, fournisseurAdress TEXT, nif TEXT, stat TEXT, contact TEXT, dateCreation TEXT)',
         );
 
         await db.execute(
           'CREATE TABLE unite (id INTEGER PRIMARY KEY AUTOINCREMENT, nomFournisseur TEXT NOT NULL)',
         );
+
+        await db.execute('CREATE TABLE client ('
+            'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+            'clientName TEXT NOT NULL, '
+            'clientSurname TEXT NOT NULL, '
+            'clientAdress TEXT NOT NULL, '
+            'mailAdress TEXT NOT NULL, '
+            'nif TEXT, '
+            'stat TEXT, '
+            'contact TEXT, '
+            'pro INTEGER DEFAULT 0, ' // 0 = false, 1 = true
+            'codeClient TEXT NOT NULL UNIQUE)');
 
         await db.execute('''
           CREATE TABLE historique_categorie (
@@ -136,6 +153,8 @@ class DataBaseHelper {
     );
   }
 
+  //////////////////////////////////category///////////////////////////////////////////
+
   Future<List<Category>> getCategory() async {
     final db = await initDB();
     final List<Map<String, Object?>> categoriesMaps =
@@ -153,7 +172,6 @@ class DataBaseHelper {
   Future<int> addCategory(Category category) async {
     try {
       final Database db = await initDB();
-
       int categoryId = await db.insert(
         'category',
         category.toMap(),
@@ -207,24 +225,6 @@ class DataBaseHelper {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getAllHistoriqueProduct() async {
-    final Database db = await initDB();
-    return await db.query(
-      'historique_products',
-      orderBy: 'dateAction DESC',
-    );
-  }
-
-  // Future<void> updateCategory(Category category) async {
-  //   final db = await initDB();
-  //   await db.update(
-  //     'category',
-  //     category.toMap(),
-  //     where: 'id = ?',
-  //     whereArgs: [category.id],
-  //   );
-  // }
-
   Future<void> updateCategory(Category category) async {
     final db = await initDB();
 
@@ -236,7 +236,6 @@ class DataBaseHelper {
     );
 
     String action = await getActionFromSharedPreferences();
-
     final prefs = await SharedPreferences.getInstance();
     String username = prefs.getString('username') ?? 'Unknown';
 
@@ -255,40 +254,29 @@ class DataBaseHelper {
     );
   }
 
-  Future<List<Unite>> getUnite() async {
-    final db = await initDB();
-    final List<Map<String, Object?>> uniteMaps = await db.query('unite');
-
-    return uniteMaps.map((uniteMaps) {
-      return Unite(
-        id: uniteMaps['id'] as int,
-        nom: uniteMaps['nom'] as String,
+  Future<int> deleteCategory(int id) async {
+    try {
+      final Database db = await initDB();
+      return await db.delete(
+        'categorie',
+        where: 'id = ?',
+        whereArgs: [id],
       );
-    }).toList();
+    } catch (e) {
+      return -1;
+    }
   }
 
-  Future<List<Supplier>> getSupplier() async {
-    final db = await initDB();
-    final List<Map<String, Object?>> fournisseurMaps =
-        await db.query('fournisseur');
-
-    return fournisseurMaps.map((fournisseurMaps) {
-      return Supplier(
-        id: fournisseurMaps['id'] as int,
-        fournisseurName: fournisseurMaps['fournisseurName'] as String,
-        fournisseurAdress: fournisseurMaps['fournisseurAdress'] as String,
-        nif: fournisseurMaps['nif'] as String,
-        stat: fournisseurMaps['stat'] as String,
-        contact: fournisseurMaps['contact'] as String,
-        dateCreation: fournisseurMaps['dateCreation'] as String,
-      );
-    }).toList();
+  Future<String> getActionFromSharedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('category_action') ?? 'unknown';
   }
+
+  //////////////////////////////////product///////////////////////////////////////////
 
   Future<int> addProduct(Product product) async {
     try {
       final Database db = await initDB();
-
       int productId = await db.insert(
         'product',
         product.toMap(),
@@ -365,6 +353,187 @@ class DataBaseHelper {
     );
   }
 
+  Future<List<Map<String, dynamic>>> getAllHistoriqueProduct() async {
+    final Database db = await initDB();
+    return await db.query(
+      'historique_products',
+      orderBy: 'dateAction DESC',
+    );
+  }
+
+  Future<List<Unite>> getUnite() async {
+    final db = await initDB();
+    final List<Map<String, Object?>> uniteMaps = await db.query('unite');
+
+    return uniteMaps.map((uniteMaps) {
+      return Unite(
+        id: uniteMaps['id'] as int,
+        name: uniteMaps['name'] as String,
+      );
+    }).toList();
+  }
+
+  Future<int> deleteProduct(int id) async {
+    try {
+      final Database db = await initDB();
+      return await db.delete(
+        'produits',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<String> getActionProductFromSharedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('product_action') ?? 'unknown';
+  }
+
+  //////////////////////////////////supplier///////////////////////////////////////////
+
+  Future<List<Supplier>> getSupplier() async {
+    final db = await initDB();
+    final List<Map<String, Object?>> fournisseurMaps =
+        await db.query('fournisseur');
+
+    return fournisseurMaps.map((fournisseurMaps) {
+      return Supplier(
+        id: fournisseurMaps['id'] as int,
+        fournisseurName: fournisseurMaps['fournisseurName'] as String,
+        fournisseurAdress: fournisseurMaps['fournisseurAdress'] as String,
+        nif: fournisseurMaps['nif'] as String,
+        stat: fournisseurMaps['stat'] as String,
+        contact: fournisseurMaps['contact'] as String,
+        dateCreation: fournisseurMaps['dateCreation'] as String,
+      );
+    }).toList();
+  }
+
+  Future<int> addSupplier(Supplier supplier) async {
+    try {
+      final Database db = await initDB();
+      return await db.insert(
+        'fournisseur',
+        supplier.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<void> updateSupplier(Supplier supplier) async {
+    final db = await initDB();
+    await db.update(
+      'fournisseur',
+      supplier.toMap(),
+      where: 'id = ?',
+      whereArgs: [supplier.id],
+    );
+  }
+
+  /////////////////////////Client////////////////////////////////////////////
+
+  Future<int> AddClient(Client client) async {
+    try {
+      final Database db = await initDB();
+      return await db.insert(
+        'client',
+        client.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<List<Client>> getClient() async {
+    final db = await initDB();
+    final List<Map<String, Object?>> clientMaps = await db.query('client');
+
+    return clientMaps.map((clientMaps) {
+      return Client(
+        id: clientMaps['id'] as int,
+        clientName: clientMaps['clientName'] as String,
+        clientSurname: clientMaps['clientSurname'] as String,
+        clientAdress: clientMaps['clientAdress'] as String,
+        mailAdress: clientMaps['mailAdress'] as String,
+        nif: clientMaps['nif'] as String,
+        stat: clientMaps['stat'] as String,
+        contact: clientMaps['contact'] as String,
+        pro: clientMaps['pro'] as bool,
+        codeClient: clientMaps['codeClient'] as String,
+      );
+    }).toList();
+  }
+
+  Future<void> updateClient(Client client) async {
+    final db = await initDB();
+    await db.update(
+      'client',
+      client.toMap(),
+      where: 'id = ?',
+      whereArgs: [client.id],
+    );
+  }
+
+  //////////////////////////////////unity///////////////////////////////////////////
+
+  Future<int> AddUnity(Unite unite) async {
+    try {
+      final Database db = await initDB();
+      return await db.insert(
+        'unity',
+        unite.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<List<Unite>> getUnity() async {
+    final db = await initDB();
+    final List<Map<String, Object?>> clientMaps = await db.query('unity');
+
+    return clientMaps.map((clientMaps) {
+      return Unite(
+        id: clientMaps['id'] as int,
+        name: clientMaps['name'] as String,
+      );
+    }).toList();
+  }
+
+  Future<void> updateUnity(Unite unite) async {
+    final db = await initDB();
+    await db.update(
+      'unity',
+      unite.toMap(),
+      where: 'id = ?',
+      whereArgs: [unite.id],
+    );
+  }
+
+  Future<int> deleteUnity(int id) async {
+    try {
+      final Database db = await initDB();
+      return await db.delete(
+        'unity',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<void> logOut() async {
+    final Database db = await initDB();
+    await db.delete('session');
+  }
+
   // Future<void> updateCategory(Category category) async {
   //   final db = await initDB();
 
@@ -394,70 +563,6 @@ class DataBaseHelper {
   //     conflictAlgorithm: ConflictAlgorithm.replace,
   //   );
   // }
-
-  Future<int> addSupplier(Supplier supplier) async {
-    try {
-      final Database db = await initDB();
-      return await db.insert(
-        'fournisseur',
-        supplier.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    } catch (e) {
-      return -1;
-    }
-  }
-
-  Future<void> updateSupplier(Supplier supplier) async {
-    final db = await initDB();
-    await db.update(
-      'fournisseur',
-      supplier.toMap(),
-      where: 'id = ?',
-      whereArgs: [supplier.id],
-    );
-  }
-
-  Future<int> deleteProduct(int id) async {
-    try {
-      final Database db = await initDB();
-      return await db.delete(
-        'produits',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-    } catch (e) {
-      return -1;
-    }
-  }
-
-  Future<int> deleteCategory(int id) async {
-    try {
-      final Database db = await initDB();
-      return await db.delete(
-        'categorie',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-    } catch (e) {
-      return -1;
-    }
-  }
-
-  Future<void> logOut() async {
-    final Database db = await initDB();
-    await db.delete('session');
-  }
-
-  Future<String> getActionFromSharedPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('category_action') ?? 'unknown';
-  }
-
-  Future<String> getActionProductFromSharedPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('product_action') ?? 'unknown';
-  }
 
   // Future<List<Produits>> getProduits() async {
   //   final db = await initDB();
@@ -517,5 +622,15 @@ class DataBaseHelper {
   //   } catch (e) {
   //     return -1;
   //   }
+  // }
+
+  // Future<void> updateCategory(Category category) async {
+  //   final db = await initDB();
+  //   await db.update(
+  //     'category',
+  //     category.toMap(),
+  //     where: 'id = ?',
+  //     whereArgs: [category.id],
+  //   );
   // }
 }

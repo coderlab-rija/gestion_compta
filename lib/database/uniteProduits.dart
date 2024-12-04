@@ -1,6 +1,6 @@
 class Unite {
   final int? id;
-  String name;
+  final String name;
 
   Unite({
     this.id,
