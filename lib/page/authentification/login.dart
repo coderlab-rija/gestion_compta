@@ -31,10 +31,12 @@ class _LoginScreenState extends State<LoginScreen> {
     ));
 
     if (userId != null) {
-      print('Utilisateur connecté avec ID : $userId');
+      print('User login with id: $userId');
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('userId', userId);
-      await prefs.setString('userPassword', password.text);
+
+      await getUtilisateurById(userId);
+
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -43,6 +45,19 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         isLoginTrue = true;
       });
+    }
+  }
+
+  Future<void> getUtilisateurById(int userId) async {
+    final utilisateur = await db.getUtilisateurById(userId);
+
+    if (utilisateur != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('username', utilisateur.username);
+      await prefs.setString('lastname', utilisateur.lastname);
+      await prefs.setString('email', utilisateur.email);
+    } else {
+      print("Error: User not found");
     }
   }
 
@@ -75,14 +90,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: email,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "email is required";
+                          return "Mail is required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.mail),
                         border: InputBorder.none,
-                        hintText: "Email",
+                        hintText: "Mail",
                       ),
                     ),
                   ),
@@ -132,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextButton(
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
-                          print("Validation réussie");
+                          print("Validation successful");
                           await login();
                         }
                       },

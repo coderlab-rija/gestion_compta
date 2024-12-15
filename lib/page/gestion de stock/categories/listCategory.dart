@@ -2,35 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/ajoutCategorie.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/editCategorie.dart';
-import 'package:my_apk/page/gestion%20de%20stock/produits/ajoutProduit.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/categories/addCategory.dart';
+import 'package:my_apk/page/gestion%20de%20stock/categories/editCategory.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/addProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class Listecategorie extends StatefulWidget {
-  const Listecategorie({super.key});
+class Listcategory extends StatefulWidget {
+  const Listcategory({super.key});
 
   @override
-  State<Listecategorie> createState() => _ListeCategorieState();
+  State<Listcategory> createState() => _ListcategoryState();
 }
 
-class _ListeCategorieState extends State<Listecategorie> {
-  late Future<List<Categorie>> _categorieFuture;
+class _ListcategoryState extends State<Listcategory> {
+  late Future<List<Category>> _categoryFuture;
 
   @override
   void initState() {
     super.initState();
-    _categorieFuture = fetchCategories();
+    _categoryFuture = fetchCategory();
   }
 
-  Future<List<Categorie>> fetchCategories() async {
+  Future<void> setActionInSharedPreferences(String action) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('category_action', action);
+  }
+
+  Future<List<Category>> fetchCategory() async {
     final dbHelper = DataBaseHelper();
-    return await dbHelper.getCategorie();
+    return await dbHelper.getCategory();
   }
 
   void _onItemSelected(int index) {
@@ -38,39 +46,35 @@ class _ListeCategorieState extends State<Listecategorie> {
     switch (index) {
       case 0:
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Profil()),
-        );
+            context, MaterialPageRoute(builder: (context) => const Profil()));
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const StockHome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StockHome()));
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Facturationhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 4:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Dashboard()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 5:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 6:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
     }
   }
@@ -78,11 +82,11 @@ class _ListeCategorieState extends State<Listecategorie> {
   void _addProduit() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const Ajoutcategorie()),
+      MaterialPageRoute(builder: (context) => const Addcategory()),
     ).then((value) {
       if (value == true) {
         setState(() {
-          _categorieFuture = fetchCategories();
+          _categoryFuture = fetchCategory();
         });
       }
     });
@@ -92,7 +96,7 @@ class _ListeCategorieState extends State<Listecategorie> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Liste des catégories"),
+        title: const Text("List of Categories"),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -105,24 +109,24 @@ class _ListeCategorieState extends State<Listecategorie> {
         ],
       ),
       drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Categorie>>(
-        future: _categorieFuture,
+      body: FutureBuilder<List<Category>>(
+        future: _categoryFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Erreur: ${snapshot.error}"));
+            return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Aucune catégorie trouvée"));
+            return const Center(child: Text("No categories found"));
           } else {
             final categories = snapshot.data!;
             return ListView.builder(
               itemCount: categories.length,
               itemBuilder: (context, index) {
-                final categorie = categories[index];
+                final category = categories[index];
                 return Card(
                   margin:
-                      const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -136,7 +140,7 @@ class _ListeCategorieState extends State<Listecategorie> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              categorie.nom,
+                              category.name,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -148,12 +152,14 @@ class _ListeCategorieState extends State<Listecategorie> {
                                 IconButton(
                                   icon:
                                       const Icon(Icons.add, color: Colors.blue),
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    await setActionInSharedPreferences(
+                                        'Modification');
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Ajoutproduit(categorie: categorie),
+                                            Ajoutproduit(categorie: category),
                                       ),
                                     );
                                   },
@@ -162,23 +168,25 @@ class _ListeCategorieState extends State<Listecategorie> {
                                   icon: const Icon(Icons.info,
                                       color: Colors.blue),
                                   onPressed: () {
-                                    _showDetails(context, categorie);
+                                    _showDetails(context, category);
                                   },
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.edit,
                                       color: Colors.orange),
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    await setActionInSharedPreferences(
+                                        'Modification');
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Editcategorie(categorie: categorie),
+                                            Editcategorie(category: category),
                                       ),
                                     ).then((value) {
                                       if (value == true) {
                                         setState(() {
-                                          _categorieFuture = fetchCategories();
+                                          _categoryFuture = fetchCategory();
                                         });
                                       }
                                     });
@@ -188,7 +196,7 @@ class _ListeCategorieState extends State<Listecategorie> {
                                   icon: const Icon(Icons.delete,
                                       color: Colors.red),
                                   onPressed: () {
-                                    _deleteCategorie(categorie);
+                                    _deleteCategorie(category);
                                   },
                                 ),
                               ],
@@ -200,11 +208,15 @@ class _ListeCategorieState extends State<Listecategorie> {
                           children: [
                             Icon(Icons.description, color: Colors.grey[700]),
                             const SizedBox(width: 8),
-                            Text(
-                              "Quantité: ${categorie.description}",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[800],
+                            Expanded(
+                              child: Text(
+                                category.description,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[800],
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
                               ),
                             ),
                           ],
@@ -221,19 +233,19 @@ class _ListeCategorieState extends State<Listecategorie> {
     );
   }
 
-  void _showDetails(BuildContext context, Categorie categorie) {
+  void _showDetails(BuildContext context, Category category) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Détails de la catégorie"),
+          title: const Text("Category Details"),
           content: Text(
-            "Nom: ${categorie.nom}",
+            "Name: ${category.name}\nDescription: ${category.description}",
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Fermer"),
+              child: const Text("Close"),
             ),
           ],
         );
@@ -241,41 +253,39 @@ class _ListeCategorieState extends State<Listecategorie> {
     );
   }
 
-  void _deleteCategorie(Categorie categorie) {
+  void _deleteCategorie(Category category) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Confirmer la suppression"),
-          content:
-              Text("Êtes-vous sûr de vouloir supprimer ${categorie.nom} ?"),
+          title: const Text("Confirm Deletion"),
+          content: Text("Are you sure you want to delete ${category.name}?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Annuler"),
+              child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () async {
                 final dbHelper = DataBaseHelper();
-                final result = await dbHelper.deleteCategorie(categorie.id!);
-
+                final result = await dbHelper.deleteCategory(category.id!);
                 if (result != -1) {
                   setState(() {
-                    _categorieFuture = fetchCategories();
+                    _categoryFuture = fetchCategory();
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Catégorie supprimée avec succès')),
+                      content: Text('Category deleted successfully'),
+                    ),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Erreur lors de la suppression')),
+                    const SnackBar(content: Text('Error while deleting')),
                   );
                 }
                 Navigator.of(context).pop();
               },
-              child: const Text("Supprimer"),
+              child: const Text("Delete"),
             ),
           ],
         );

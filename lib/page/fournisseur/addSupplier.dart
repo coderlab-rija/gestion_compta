@@ -3,25 +3,26 @@ import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Ajoutfournisseurs extends StatefulWidget {
-  final Categorie categorie;
-  const Ajoutfournisseurs({Key? key, required this.categorie})
-      : super(key: key);
+class Addsupplier extends StatefulWidget {
+  final Category categorie;
+  const Addsupplier({Key? key, required this.categorie}) : super(key: key);
 
   @override
-  State<Ajoutfournisseurs> createState() => _AjoutFournisseurState();
+  State<Addsupplier> createState() => _AjoutFournisseurState();
 }
 
-class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
-  final TextEditingController nomFournisseur = TextEditingController();
-  final TextEditingController addresseFournisseur = TextEditingController();
+class _AjoutFournisseurState extends State<Addsupplier> {
+  final TextEditingController fournisseurName = TextEditingController();
+  final TextEditingController fournisseurAdress = TextEditingController();
   final TextEditingController nif = TextEditingController();
   final TextEditingController stat = TextEditingController();
   final TextEditingController contact = TextEditingController();
@@ -33,39 +34,35 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
     switch (index) {
       case 0:
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Profil()),
-        );
+            context, MaterialPageRoute(builder: (context) => const Profil()));
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const StockHome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StockHome()));
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Facturationhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 4:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Dashboard()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 5:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 6:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
     }
   }
@@ -87,7 +84,7 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Ajouter un produit",
+                        "Add supplier",
                         style: TextStyle(
                             fontSize: 40, fontWeight: FontWeight.bold),
                       ),
@@ -95,7 +92,7 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Nom du produit
+                  // Supplier Name
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -106,22 +103,22 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nomFournisseur,
+                      controller: fournisseurName,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du fournisseur obligatoire";
+                          return "Supplier Name required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du fournisseur",
+                        hintText: "Supplier Name",
                       ),
                     ),
                   ),
 
-                  // Quantité
+                  // Address
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -132,21 +129,21 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: addresseFournisseur,
+                      controller: fournisseurAdress,
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Addresse obligatoire";
+                          return "Address required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer une addresse obligatoire";
+                          return "Please enter an exact address";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.format_list_numbered),
                         border: InputBorder.none,
-                        hintText: "Addresse",
+                        hintText: "Address",
                       ),
                     ),
                   ),
@@ -166,17 +163,17 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nif obligatoire";
+                          return "NIF required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un nif obligatoire";
+                          return "Please enter an exact NIF";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.numbers),
                         border: InputBorder.none,
-                        hintText: "Prix par unité",
+                        hintText: "NIF",
                       ),
                     ),
                   ),
@@ -196,17 +193,17 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Stat obligatoire";
+                          return "Stat required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un stat obligatoire";
+                          return "Please enter an exact STAT";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.numbers),
                         border: InputBorder.none,
-                        hintText: "Prix par unité",
+                        hintText: "STAT",
                       ),
                     ),
                   ),
@@ -226,17 +223,17 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Contact obligatoire";
+                          return "Contact required";
                         }
                         if (double.tryParse(value) == null) {
-                          return "Veuillez entrer un contact";
+                          return "Please enter a contact";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.contact_phone),
                         border: InputBorder.none,
-                        hintText: "Prix par unité",
+                        hintText: "Contact",
                       ),
                     ),
                   ),
@@ -256,7 +253,7 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                       decoration: const InputDecoration(
                         icon: Icon(Icons.dataset),
                         border: InputBorder.none,
-                        hintText: "Date de création",
+                        hintText: "Creation date",
                       ),
                     ),
                   ),
@@ -274,9 +271,9 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
                           db
-                              .ajoutFournisseur(Fournisseur(
-                                  nomFournisseur: nomFournisseur.text,
-                                  addresseFournisseur: addresseFournisseur.text,
+                              .addSupplier(Supplier(
+                                  fournisseurName: fournisseurName.text,
+                                  fournisseurAdress: fournisseurAdress.text,
                                   nif: nif.text,
                                   stat: stat.text,
                                   contact: contact.text,
@@ -286,20 +283,19 @@ class _AjoutFournisseurState extends State<Ajoutfournisseurs> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => Fournisseurhome(),
+                                  builder: (context) => Supplierhome(),
                                 ),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Échec de l\'ajout')),
+                                const SnackBar(content: Text('Adding failed')),
                               );
                             }
                           });
                         }
                       },
                       child: const Text(
-                        "Ajouter produit",
+                        "Add supplier",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

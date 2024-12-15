@@ -2,23 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/listeCategorie.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/categories/listCategory.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Ajoutcategorie extends StatefulWidget {
-  const Ajoutcategorie({super.key});
+class Addcategory extends StatefulWidget {
+  const Addcategory({super.key});
 
   @override
-  State<Ajoutcategorie> createState() => _AjoutproduitState();
+  State<Addcategory> createState() => _AddcategoryState();
 }
 
-class _AjoutproduitState extends State<Ajoutcategorie> {
-  final nomCategorie = TextEditingController();
+class _AddcategoryState extends State<Addcategory> {
+  final nameCategorie = TextEditingController();
   final description = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
@@ -27,39 +29,35 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
     switch (index) {
       case 0:
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Profil()),
-        );
+            context, MaterialPageRoute(builder: (context) => const Profil()));
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const StockHome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StockHome()));
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Facturationhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 4:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Dashboard()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 5:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 6:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
     }
   }
@@ -67,8 +65,8 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      drawer: Sidebar(onItemSelected: _onItemSelected), // Ajout de la Sidebar
+      appBar: AppBar(title: const Text('Add a Category')),
+      drawer: Sidebar(onItemSelected: _onItemSelected),
       body: Center(
         child: SingleChildScrollView(
           child: Form(
@@ -78,18 +76,11 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const ListTile(
-                    title: Center(
-                      child: Text(
-                        "Ajouter un categorie",
-                        style: TextStyle(
-                            fontSize: 30, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                  const Text(
+                    "Add a category",
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
-
-                  /// Nom du catégorie
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -98,24 +89,21 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.deepPurple.withOpacity(.2),
                     ),
-                    height: 60,
                     child: TextFormField(
-                      controller: nomCategorie,
+                      controller: nameCategorie,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du catégorie obligatoire";
+                          return "Category Name is required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du catégorie",
+                        hintText: "Category Name",
                       ),
                     ),
                   ),
-
-                  /// Description
                   Container(
                     margin: const EdgeInsets.all(4),
                     padding:
@@ -124,9 +112,10 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.deepPurple.withOpacity(.2),
                     ),
-                    height: 60,
                     child: TextFormField(
                       controller: description,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.description),
                         border: InputBorder.none,
@@ -134,7 +123,6 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 10),
                   Container(
                     height: 45,
@@ -144,33 +132,35 @@ class _AjoutproduitState extends State<Ajoutcategorie> {
                       color: Colors.deepPurple,
                     ),
                     child: TextButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db
-                              .ajoutCategorie(Categorie(
-                            nom: nomCategorie.text,
+                          int categoryId = await db.addCategory(Category(
+                            name: nameCategorie.text,
                             description: description.text,
-                          ))
-                              .then((value) {
-                            if (value > 0) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const Listecategorie()),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Échec de l\'ajout')),
-                              );
-                            }
-                          });
+                          ));
+
+                          if (categoryId > 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Category added successfully!')),
+                            );
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const Listcategory()),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Failed to add category')),
+                            );
+                          }
                         }
                       },
                       child: const Text(
-                        "Ajouter",
+                        "Add",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:my_apk/database/fournisseur.dart';
+import 'package:my_apk/database/produits.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
-class Editfournisseurs extends StatefulWidget {
-  final Fournisseur fournisseur;
+class Editproduct extends StatefulWidget {
+  final Product product;
 
-  const Editfournisseurs({super.key, required this.fournisseur});
+  const Editproduct({super.key, required this.product});
 
   @override
-  State<Editfournisseurs> createState() => _EditFournisseurState();
+  State<Editproduct> createState() => _EditproduitState();
 }
 
-class _EditFournisseurState extends State<Editfournisseurs> {
-  final nomFournisseur = TextEditingController();
-  final addresseFournisseur = TextEditingController();
-  final nif = TextEditingController();
-  final stat = TextEditingController();
-  final contact = TextEditingController();
-  final dateCreation = TextEditingController();
+class _EditproduitState extends State<Editproduct> {
+  final nameProduct = TextEditingController();
+  final quantity = TextEditingController();
+  final desccritpion = TextEditingController();
+  final price = TextEditingController();
+  final categoryId = TextEditingController();
+  final unity = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   void _onItemSelected(int index) {
@@ -32,39 +34,35 @@ class _EditFournisseurState extends State<Editfournisseurs> {
     switch (index) {
       case 0:
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Profil()),
-        );
+            context, MaterialPageRoute(builder: (context) => const Profil()));
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const StockHome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const StockHome()));
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Fournisseurhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Facturationhome()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 4:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Dashboard()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 5:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 6:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
     }
   }
@@ -72,13 +70,11 @@ class _EditFournisseurState extends State<Editfournisseurs> {
   @override
   void initState() {
     super.initState();
-    // Pre-remplir le champ
-    nomFournisseur.text = widget.fournisseur.nomFournisseur;
-    addresseFournisseur.text = widget.fournisseur.addresseFournisseur;
-    nif.text = widget.fournisseur.nif;
-    stat.text = widget.fournisseur.stat;
-    contact.text = widget.fournisseur.contact;
-    dateCreation.text = widget.fournisseur.dateCreation;
+    // Pre-fill the field
+    nameProduct.text = widget.product.name;
+    quantity.text = widget.product.quantity.toString();
+    price.text = widget.product.price.toString();
+    desccritpion.text = widget.product.description;
   }
 
   @override
@@ -98,7 +94,7 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                   const ListTile(
                     title: Center(
                       child: Text(
-                        "Modifier le fournisseur",
+                        "Edit product",
                         style: TextStyle(
                             fontSize: 30, fontWeight: FontWeight.bold),
                       ),
@@ -117,17 +113,17 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nomFournisseur,
+                      controller: nameProduct,
                       validator: (value) {
                         if (value!.isEmpty) {
-                          return "Nom du produit obligatoire";
+                          return "Product name required";
                         }
                         return null;
                       },
                       decoration: const InputDecoration(
-                        icon: Icon(Icons.text_format),
+                        icon: Icon(Icons.category),
                         border: InputBorder.none,
-                        hintText: "Nom du produit",
+                        hintText: "Product name",
                       ),
                     ),
                   ),
@@ -143,19 +139,28 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: addresseFournisseur,
-                      keyboardType: TextInputType.text,
+                      controller: quantity,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return "Quantity required";
+                        }
+                        if (double.tryParse(value) == null) {
+                          return "Please enter a valid number";
+                        }
+                        return null;
+                      },
                       decoration: const InputDecoration(
-                        icon: Icon(Icons.home),
+                        icon: Icon(Icons.format_list_numbered),
                         border: InputBorder.none,
-                        hintText: "Quantité",
+                        hintText: "Quantity",
                       ),
                     ),
                   ),
 
-                  ///NIF///
+                  ///PRIX///
                   Container(
-                    margin: const EdgeInsets.all(4),
+                    margin: const EdgeInsets.all(4), // Reduce the margin
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
@@ -164,11 +169,21 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: nif,
-                      keyboardType: TextInputType.text,
+                      controller: price,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return "Price required";
+                        }
+                        if (double.tryParse(value) == null) {
+                          return "Please enter a price";
+                        }
+                        return null;
+                      },
                       decoration: const InputDecoration(
                         icon: Icon(Icons.money),
                         border: InputBorder.none,
+                        hintText: "Price per unit",
                       ),
                     ),
                   ),
@@ -184,7 +199,7 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                     ),
                     height: 60,
                     child: TextFormField(
-                      controller: stat,
+                      controller: desccritpion,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.description),
                         border: InputBorder.none,
@@ -205,25 +220,25 @@ class _EditFournisseurState extends State<Editfournisseurs> {
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db.updateFournisseur(Fournisseur(
-                            id: widget.fournisseur.id,
-                            nomFournisseur: nomFournisseur.text,
-                            addresseFournisseur: addresseFournisseur.text,
-                            nif: nif.text,
-                            stat: stat.text,
-                            contact: contact.text,
-                            dateCreation: dateCreation.text,
+                          db.updateProduct(Product(
+                            id: widget.product.id,
+                            name: nameProduct.text,
+                            quantity: int.tryParse(quantity.text) ?? 0,
+                            price: double.tryParse(price.text) ?? 0.0,
+                            description: desccritpion.text,
+                            categoryId: widget.product.categoryId,
+                            unity: unity.text,
                           ));
                           Navigator.pop(context, true);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Fournisseur modifié avec succès"),
+                              content: Text("Product successfully modified"),
                             ),
                           );
                         }
                       },
                       child: const Text(
-                        "Modifier",
+                        "Update",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

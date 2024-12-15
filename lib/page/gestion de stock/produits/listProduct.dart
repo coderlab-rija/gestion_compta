@@ -3,70 +3,78 @@ import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/produits.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
-import 'package:my_apk/page/gestion%20de%20stock/produits/editProduit.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/editProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class Listeproduit extends StatefulWidget {
-  const Listeproduit({super.key});
+class Listproduct extends StatefulWidget {
+  const Listproduct({super.key});
 
   @override
-  State<Listeproduit> createState() => _ListeproduitState();
+  State<Listproduct> createState() => _ListproduitState();
 }
 
-class _ListeproduitState extends State<Listeproduit> {
-  late Future<List<Produits>> _produitsFuture;
-  late Future<List<Categorie>> _categoriesFuture;
+class _ListproduitState extends State<Listproduct> {
+  late Future<List<Product>> _productFuture;
+  late Future<List<Category>> _categoryFuture;
   int? selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
-    _produitsFuture = getProduits();
-    _categoriesFuture = getCategories();
+    _productFuture = getProduct();
+    _categoryFuture = getCategory();
   }
 
-  Future<List<Produits>> getProduits() async {
+  Future<void> setActionProductInSharedPreferences(String action) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('product_action', action);
+  }
+
+  Future<List<Product>> getProduct() async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
     final List<Map<String, Object?>> productsMaps;
 
     if (selectedCategoryId != null) {
       productsMaps = await db.query(
-        'produits',
-        where: 'categorieId = ?',
+        'product',
+        where: 'categoryId = ?',
         whereArgs: [selectedCategoryId],
       );
     } else {
-      productsMaps = await db.query('produits');
+      productsMaps = await db.query('product');
     }
 
     return productsMaps.map((productMap) {
-      return Produits(
+      return Product(
         id: productMap['id'] as int,
-        nom: productMap['nom'] as String,
-        prixUnitaire: productMap['prixUnitaire'] as double,
-        quantiter: productMap['quantiter'] as int,
+        name: productMap['name'] as String,
+        price: productMap['price'] as double,
+        quantity: productMap['quantity'] as int,
         description: productMap['description'] as String,
-        categorieId: productMap['categorieId'] as int,
-        unite: productMap['unite'] as String,
+        categoryId: productMap['categoryId'] as int,
+        unity: productMap['unity'] as String,
       );
     }).toList();
   }
 
-  Future<List<Categorie>> getCategories() async {
+  Future<List<Category>> getCategory() async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
     final List<Map<String, Object?>> categoriesMaps =
-        await db.query('categorie');
+        await db.query('category');
     return categoriesMaps.map((categoryMap) {
-      return Categorie(
+      return Category(
         id: categoryMap['id'] as int,
-        nom: categoryMap['nom'] as String,
+        name: categoryMap['name'] as String,
         description: categoryMap['description'] as String,
       );
     }).toList();
@@ -85,17 +93,25 @@ class _ListeproduitState extends State<Listeproduit> {
         break;
       case 2:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Fournisseurhome()));
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 3:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Facturationhome()));
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 4:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Dashboard()));
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 5:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 6:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 7:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
@@ -107,9 +123,9 @@ class _ListeproduitState extends State<Listeproduit> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Sélectionner une catégorie"),
-          content: FutureBuilder<List<Categorie>>(
-            future: _categoriesFuture,
+          title: const Text("Select a category"),
+          content: FutureBuilder<List<Category>>(
+            future: _categoryFuture,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const CircularProgressIndicator();
@@ -120,21 +136,21 @@ class _ListeproduitState extends State<Listeproduit> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ListTile(
-                    title: const Text("Toutes les catégories"),
+                    title: const Text("All categories"),
                     onTap: () {
                       setState(() {
                         selectedCategoryId = null;
-                        _produitsFuture = getProduits();
+                        _productFuture = getProduct();
                       });
                       Navigator.of(context).pop();
                     },
                   ),
                   ...categories.map((category) => ListTile(
-                        title: Text(category.nom),
+                        title: Text(category.name),
                         onTap: () {
                           setState(() {
                             selectedCategoryId = category.id;
-                            _produitsFuture = getProduits();
+                            _productFuture = getProduct();
                           });
                           Navigator.of(context).pop();
                         },
@@ -152,7 +168,7 @@ class _ListeproduitState extends State<Listeproduit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Liste de toutes les produits"),
+        title: const Text("List of all products"),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -161,21 +177,21 @@ class _ListeproduitState extends State<Listeproduit> {
         ],
       ),
       drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Produits>>(
-        future: _produitsFuture,
+      body: FutureBuilder<List<Product>>(
+        future: _productFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Erreur: ${snapshot.error}"));
+            return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Aucun produit trouvé"));
+            return const Center(child: Text("No products found"));
           } else {
-            final produits = snapshot.data!;
+            final product = snapshot.data!;
             return ListView.builder(
-              itemCount: produits.length,
+              itemCount: product.length,
               itemBuilder: (context, index) {
-                final produit = produits[index];
+                final response = product[index];
                 return Card(
                   margin:
                       const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
@@ -192,7 +208,7 @@ class _ListeproduitState extends State<Listeproduit> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              produit.nom,
+                              response.name,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -205,23 +221,25 @@ class _ListeproduitState extends State<Listeproduit> {
                                   icon: const Icon(Icons.info,
                                       color: Colors.blue),
                                   onPressed: () {
-                                    _showDetails(context, produit);
+                                    _showDetails(context, response);
                                   },
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.edit,
                                       color: Colors.orange),
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    await setActionProductInSharedPreferences(
+                                        'Product updated');
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Editproduit(produit: produit),
+                                            Editproduct(product: response),
                                       ),
                                     ).then((value) {
                                       if (value == true) {
                                         setState(() {
-                                          _produitsFuture = getProduits();
+                                          _productFuture = getProduct();
                                         });
                                       }
                                     });
@@ -231,7 +249,7 @@ class _ListeproduitState extends State<Listeproduit> {
                                   icon: const Icon(Icons.delete,
                                       color: Colors.red),
                                   onPressed: () {
-                                    _deleteProduct(produit);
+                                    _deleteProduct(response);
                                   },
                                 ),
                               ],
@@ -244,7 +262,7 @@ class _ListeproduitState extends State<Listeproduit> {
                             Icon(Icons.inventory, color: Colors.grey[700]),
                             const SizedBox(width: 8),
                             Text(
-                              "Quantité: ${produit.quantiter} ${produit.unite}",
+                              "Quantity: ${response.quantity} ${response.unity}",
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[800],
@@ -258,7 +276,7 @@ class _ListeproduitState extends State<Listeproduit> {
                             Icon(Icons.money, color: Colors.grey[700]),
                             const SizedBox(width: 8),
                             Text(
-                              "Prix unitaire: ${produit.prixUnitaire} Ar",
+                              "Price: ${response.price} Ar",
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -272,7 +290,7 @@ class _ListeproduitState extends State<Listeproduit> {
                             Icon(Icons.description, color: Colors.grey[700]),
                             const SizedBox(width: 8),
                             Text(
-                              produit.description,
+                              response.description,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -292,19 +310,19 @@ class _ListeproduitState extends State<Listeproduit> {
     );
   }
 
-  void _showDetails(BuildContext context, Produits produit) {
+  void _showDetails(BuildContext context, Product product) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Détails du produit"),
+          title: const Text("Product details"),
           content: Text(
-            "Nom: ${produit.nom}\nQuantité: ${produit.quantiter} ${produit.unite}\nPrix: ${produit.prixUnitaire} Ar\nDescription: ${produit.description}",
+            "Name: ${product.name}\nQuantity: ${product.quantity} ${product.unity}\nPrice: ${product.price} Ar\nDescription: ${product.description}",
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Fermer"),
+              child: const Text("Cancel"),
             ),
           ],
         );
@@ -312,30 +330,30 @@ class _ListeproduitState extends State<Listeproduit> {
     );
   }
 
-  void _deleteProduct(Produits produit) {
+  void _deleteProduct(Product product) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Confirmer la suppression"),
-          content: Text("Êtes-vous sûr de vouloir supprimer ${produit.nom}?"),
+          title: const Text("Confirm deletion"),
+          content: Text("Are you sure you want to delete? ${product.name}?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Annuler"),
+              child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () async {
                 final dbHelper = DataBaseHelper();
                 final db = await dbHelper.initDB();
-                await db.delete('produits',
-                    where: 'id = ?', whereArgs: [produit.id]);
+                await db.delete('product',
+                    where: 'id = ?', whereArgs: [product.id]);
                 Navigator.of(context).pop();
                 setState(() {
-                  _produitsFuture = getProduits();
+                  _productFuture = getProduct();
                 });
               },
-              child: const Text("Supprimer"),
+              child: const Text("Deleted"),
             ),
           ],
         );
