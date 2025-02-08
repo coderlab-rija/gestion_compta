@@ -21,6 +21,10 @@ dependencies:
   google_nav_bar: ^5.0.6
   sidebarx: ^0.17.1
   shared_preferences: ^2.3.2
+  pdf: ^3.6.0
+  printing: ^5.0.0
+  mailer: ^6.2.0
+  file_picker: ^8.1.4
 
 dev_dependencies:
   flutter_test:

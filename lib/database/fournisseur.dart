@@ -1,26 +1,26 @@
-class Fournisseur {
+class Supplier {
   final int? id;
-  String nomFournisseur;
-  String addresseFournisseur;
+  String fournisseurName;
+  String fournisseurAdress;
   String nif;
   String stat;
   String contact;
   String dateCreation;
 
-  Fournisseur({
+  Supplier({
     this.id,
-    required this.nomFournisseur,
-    required this.addresseFournisseur,
+    required this.fournisseurName,
+    required this.fournisseurAdress,
     required this.nif,
     required this.stat,
     required this.contact,
     required this.dateCreation,
   });
 
-  factory Fournisseur.fromMap(Map<String, dynamic> json) => Fournisseur(
+  factory Supplier.fromMap(Map<String, dynamic> json) => Supplier(
         id: json["id"],
-        nomFournisseur: json["nomFournisseur"],
-        addresseFournisseur: json["addresseFournisseur"],
+        fournisseurName: json["fournisseurName"],
+        fournisseurAdress: json["fournisseurAdress"],
         nif: json["nif"],
         stat: json["stat"],
         contact: json["contact"],
@@ -29,8 +29,8 @@ class Fournisseur {
 
   Map<String, dynamic> toMap() => {
         "id": id,
-        "nomFournisseur": nomFournisseur,
-        "addresseFournisseur": addresseFournisseur,
+        "fournisseurName": fournisseurName,
+        "fournisseurAdress": fournisseurAdress,
         "nif": nif,
         "stat": stat,
         "contact": contact,

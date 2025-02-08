@@ -207,17 +207,17 @@ class _SignUpState extends State<SignUp> {
                                   password: password.text))
                               .then((value) {
                             if (value > 0) {
-                              // Si l'insertion est réussie
+                              // If the insertion is successful
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => HomePage()),
                               );
                             } else {
-                              // Si l'insertion échoue
+                              // If the insertion fails
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('Échec de l\'inscription')),
+                                    content: Text('Registration failed')),
                               );
                             }
                           });

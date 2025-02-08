@@ -1,19 +1,19 @@
 class Unite {
   final int? id;
-  String nom;
+  String name;
 
   Unite({
     this.id,
-    required this.nom,
+    required this.name,
   });
 
   factory Unite.fromMap(Map<String, dynamic> json) => Unite(
         id: json["id"],
-        nom: json["nom"],
+        name: json["name"],
       );
 
   Map<String, dynamic> toMap() => {
         "id": id,
-        "nom": nom,
+        "name": name,
       };
 }

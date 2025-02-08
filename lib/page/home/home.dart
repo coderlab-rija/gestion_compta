@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
-import 'package:my_apk/page/fournisseur/listeFournisseurs.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/historiques/historique.dart';
+import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
@@ -20,10 +27,18 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const Profil(),
     const StockHome(),
-    const Fournisseurhome(),
+    const Supplierhome(),
+    const Boncommandeneutre(),
+    const ClientHome(),
     const Facturationhome(),
     const Dashboard(),
+    const Configurationhome(),
     const LoginScreen(),
+    const ListBoncommande(),
+    const Listproduct(),
+    const Inventaire(),
+    const Historique(),
+    const Boncommandeneutre(),
   ];
 
   void _onItemSelected(int index) {
@@ -41,14 +56,26 @@ class _HomePageState extends State<HomePage> {
           _selectedIndex == 0
               ? ''
               : _selectedIndex == 1
-                  ? 'Gestion des Inventaires'
+                  ? 'Inventory Management'
                   : _selectedIndex == 2
-                      ? 'Gestion des Fournisseurs'
+                      ? 'Listes des fournisseurs'
                       : _selectedIndex == 3
-                          ? 'Facturation'
+                          ? 'Achat fournisseurs'
                           : _selectedIndex == 4
-                              ? 'Tableau de bord'
-                              : 'Se déconnecter',
+                              ? 'Listes des clients'
+                              : _selectedIndex == 5
+                                  ? 'Facturation'
+                                  : _selectedIndex == 6
+                                      ? 'Dashboard'
+                                      : _selectedIndex == 7
+                                          ? 'Configuration'
+                                          : _selectedIndex == 8
+                                              ? 'Log out'
+                                              : _selectedIndex == 9
+                                                  ? 'Commandes fournisseurs'
+                                                  : _selectedIndex == 9
+                                                      ? 'Listes des articles'
+                                                      : 'Faire une achat',
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
