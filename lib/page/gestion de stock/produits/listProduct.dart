@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/produits.dart';
+import 'package:my_apk/database/unite.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
@@ -8,6 +9,8 @@ import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/editProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -41,27 +44,33 @@ class _ListproduitState extends State<Listproduct> {
   Future<List<Product>> getProduct() async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> productsMaps;
 
+    final List<Map<String, Object?>> productsMaps;
     if (selectedCategoryId != null) {
-      productsMaps = await db.query(
-        'product',
-        where: 'categoryId = ?',
-        whereArgs: [selectedCategoryId],
-      );
+      productsMaps = await db.rawQuery('''
+      SELECT product.id, product.name, product.description, product.unityId, category.id, category.name as categoryName
+      FROM product
+      JOIN category ON product.categoryId = category.id
+      WHERE product.categoryId = ?
+    ''', [selectedCategoryId]);
     } else {
-      productsMaps = await db.query('product');
+      productsMaps = await db.rawQuery('''
+      SELECT product.id, product.name, product.description, product.unityId, category.id as categoryId, category.name as categoryName , unity.name as unityName
+      FROM product
+      JOIN category ON product.categoryId = category.id
+      JOIN unity ON product.unityId = unity.id
+    ''');
     }
 
     return productsMaps.map((productMap) {
       return Product(
         id: productMap['id'] as int,
         name: productMap['name'] as String,
-        price: productMap['price'] as double,
-        quantity: productMap['quantity'] as int,
         description: productMap['description'] as String,
+        unityName: productMap['unityName'] as String,
+        unityId: productMap['unityId'] as int,
         categoryId: productMap['categoryId'] as int,
-        unity: productMap['unity'] as String,
+        categoryName: productMap['categoryName'] as String,
       );
     }).toList();
   }
@@ -76,6 +85,19 @@ class _ListproduitState extends State<Listproduct> {
         id: categoryMap['id'] as int,
         name: categoryMap['name'] as String,
         description: categoryMap['description'] as String,
+      );
+    }).toList();
+  }
+
+  Future<List<Unite>> getUnity() async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    final List<Map<String, Object?>> clientMaps = await db.query('unity');
+
+    return clientMaps.map((clientMaps) {
+      return Unite(
+        id: clientMaps['id'] as int,
+        name: clientMaps['name'] as String,
       );
     }).toList();
   }
@@ -97,21 +119,25 @@ class _ListproduitState extends State<Listproduct> {
         break;
       case 3:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const ClientHome()));
+            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
         break;
       case 4:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Facturationhome()));
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 5:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Dashboard()));
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 6:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Configurationhome()));
+            MaterialPageRoute(builder: (context) => const Dashboard()));
         break;
       case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 8:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
@@ -123,7 +149,7 @@ class _ListproduitState extends State<Listproduct> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Select a category"),
+          title: const Text("Selectioner le categorie"),
           content: FutureBuilder<List<Category>>(
             future: _categoryFuture,
             builder: (context, snapshot) {
@@ -136,7 +162,7 @@ class _ListproduitState extends State<Listproduct> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ListTile(
-                    title: const Text("All categories"),
+                    title: const Text("Tous"),
                     onTap: () {
                       setState(() {
                         selectedCategoryId = null;
@@ -164,200 +190,243 @@ class _ListproduitState extends State<Listproduct> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("List of all products"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showCategoryFilterDialog,
-          ),
-        ],
-      ),
-      drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Product>>(
-        future: _productFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No products found"));
-          } else {
-            final product = snapshot.data!;
-            return ListView.builder(
-              itemCount: product.length,
-              itemBuilder: (context, index) {
-                final response = product[index];
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              response.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.info,
-                                      color: Colors.blue),
-                                  onPressed: () {
-                                    _showDetails(context, response);
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.orange),
-                                  onPressed: () async {
-                                    await setActionProductInSharedPreferences(
-                                        'Product updated');
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            Editproduct(product: response),
-                                      ),
-                                    ).then((value) {
-                                      if (value == true) {
-                                        setState(() {
-                                          _productFuture = getProduct();
-                                        });
-                                      }
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    _deleteProduct(response);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(Icons.inventory, color: Colors.grey[700]),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Quantity: ${response.quantity} ${response.unity}",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(Icons.money, color: Colors.grey[700]),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Price: ${response.price} Ar",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(Icons.description, color: Colors.grey[700]),
-                            const SizedBox(width: 8),
-                            Text(
-                              response.description,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-        },
-      ),
-    );
-  }
+  Future<void> _showAddProductDialog() async {
+    String name = '';
+    String description = '';
+    int? categoryId;
+    int? unityId;
 
-  void _showDetails(BuildContext context, Product product) {
-    showDialog(
+    return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Product details"),
-          content: Text(
-            "Name: ${product.name}\nQuantity: ${product.quantity} ${product.unity}\nPrice: ${product.price} Ar\nDescription: ${product.description}",
+          title: const Text('Ajouter un produit'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                onChanged: (value) => name = value,
+                decoration: const InputDecoration(labelText: 'Nom du produit'),
+              ),
+              TextField(
+                onChanged: (value) => description = value,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              FutureBuilder<List<Category>>(
+                future: _categoryFuture,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+                  final categories = snapshot.data!;
+                  return DropdownButton<int>(
+                    hint: const Text('Selectioner le categorie'),
+                    value: categoryId,
+                    onChanged: (int? newValue) {
+                      setState(() {
+                        categoryId = newValue;
+                      });
+                    },
+                    items: categories.map((category) {
+                      return DropdownMenuItem<int>(
+                        value: category.id,
+                        child: Text(category.name),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+              FutureBuilder<List<Unite>>(
+                future: getUnity(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+                  final unities = snapshot.data!;
+                  return DropdownButton<int>(
+                    hint: const Text('Select un unité'),
+                    value: unityId,
+                    onChanged: (int? newValue) {
+                      setState(() {
+                        unityId = newValue;
+                      });
+                    },
+                    items: unities.map((unite) {
+                      return DropdownMenuItem<int>(
+                        value: unite.id,
+                        child: Text(unite.name),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+            ],
           ),
-          actions: [
+          actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancel"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deleteProduct(Product product) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Confirm deletion"),
-          content: Text("Are you sure you want to delete? ${product.name}?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancel"),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
-                final dbHelper = DataBaseHelper();
-                final db = await dbHelper.initDB();
-                await db.delete('product',
-                    where: 'id = ?', whereArgs: [product.id]);
-                Navigator.of(context).pop();
-                setState(() {
-                  _productFuture = getProduct();
-                });
+                if (name.isNotEmpty &&
+                    description.isNotEmpty &&
+                    categoryId != null &&
+                    unityId != null) {
+                  final dbHelper = DataBaseHelper();
+                  final db = await dbHelper.initDB();
+                  await db.insert('product', {
+                    'name': name,
+                    'description': description,
+                    'categoryId': categoryId,
+                    'unityId': unityId,
+                  });
+                  setState(() {
+                    _productFuture = getProduct();
+                  });
+                  Navigator.of(context).pop();
+                }
               },
-              child: const Text("Deleted"),
+              child: const Text('Add'),
             ),
           ],
         );
       },
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        drawer: Sidebar(onItemSelected: _onItemSelected),
+        body: FutureBuilder<List<Product>>(
+          future: _productFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text("No products found"));
+            } else {
+              final product = snapshot.data!;
+              return ListView.builder(
+                itemCount: product.length,
+                itemBuilder: (context, index) {
+                  final response = product[index];
+                  return Card(
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                response.name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.teal,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.shopping_cart,
+                                        color: Colors.blue),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              Boncommandeproduct(
+                                                  product: response),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.orange),
+                                    onPressed: () {
+                                      _editProduct(response);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    onPressed: () {
+                                      _deleteProduct(response.id!);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "Description du produit: ${response.description}",
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Category du produit: ${response.categoryName}",
+                            style: const TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Unite de géstion: ${response.unityName}",
+                            style: const TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }
+          },
+        ),
+        floatingActionButton: Stack(
+          children: [
+            Positioned(
+              bottom: 16,
+              right: 5,
+              child: FloatingActionButton(
+                onPressed: _showAddProductDialog,
+                child: const Icon(Icons.add),
+              ),
+            ),
+          ],
+        ));
+  }
+
+  void _editProduct(Product product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Editproduct(product: product),
+      ),
+    );
+  }
+
+  void _deleteProduct(int id) async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    await db.delete('product', where: 'id = ?', whereArgs: [id]);
+    setState(() {
+      _productFuture = getProduct();
+    });
   }
 }

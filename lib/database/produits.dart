@@ -1,39 +1,39 @@
 class Product {
   final int? id;
   String name;
-  int quantity;
-  double price;
   dynamic description;
   int? categoryId;
-  String unity;
+  int? unityId;
+  String? unityName;
+  String? categoryName;
 
   Product({
     this.id,
     required this.name,
-    required this.quantity,
-    required this.price,
     required this.description,
     this.categoryId,
-    required this.unity,
+    this.unityId,
+    this.unityName,
+    this.categoryName,
   });
 
   factory Product.fromMap(Map<String, dynamic> json) => Product(
         id: json["id"],
         name: json["name"],
-        quantity: json["quantity"],
-        price: json["price"],
         description: json["description"],
         categoryId: json["categoryId"],
-        unity: json["unity"],
+        unityId: json["unityId"],
+        unityName: json["unityName"],
+        categoryName: json["categoryName"],
       );
 
   Map<String, dynamic> toMap() => {
         "id": id,
         "name": name,
-        "quantity": quantity,
-        "price": price,
         "description": description,
         "categoryId": categoryId,
-        "unity": unity,
+        "unityId": unityId,
+        "unity": unityName,
+        "categoryName": categoryName,
       };
 }

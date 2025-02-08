@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:my_apk/database/achatFournisseur.dart';
 import 'package:my_apk/database/client.dart';
 import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/database/hisotriqueCategory.dart';
 import 'package:my_apk/database/hisotriqueProduit.dart';
+import 'package:my_apk/database/paiement.dart';
 import 'package:my_apk/database/produits.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/unite.dart';
@@ -14,7 +16,7 @@ import 'package:path/path.dart';
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'rija-base16.db');
+    final path = join(databasePath, 'rija-base31.db');
     return openDatabase(
       path,
       version: 1,
@@ -24,7 +26,7 @@ class DataBaseHelper {
         );
 
         await db.execute(
-          'CREATE TABLE product (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, quantity INTEGER NOT NULL, price REAL NOT NULL, description TEXT, categoryId INTEGER, unity TEXT NOT NULL, FOREIGN KEY(categoryId) REFERENCES category(id))',
+          'CREATE TABLE product (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, description TEXT, categoryId INTEGER, unityId INTEGER, FOREIGN KEY(categoryId) REFERENCES category(id), FOREIGN KEY(unityId) REFERENCES unity(id))',
         );
 
         await db.execute(
@@ -40,7 +42,7 @@ class DataBaseHelper {
         );
 
         await db.execute(
-          'CREATE TABLE unite (id INTEGER PRIMARY KEY AUTOINCREMENT, nomFournisseur TEXT NOT NULL)',
+          'CREATE TABLE paiementMode (id INTEGER PRIMARY KEY AUTOINCREMENT, mode TEXT NOT NULL, code TEXT NOT NULL, operateur TEXT, numero TEXT)',
         );
 
         await db.execute('CREATE TABLE client ('
@@ -74,6 +76,24 @@ class DataBaseHelper {
             produitName TEXT NOT NULL,
             username TEXT NOT NULL,
             dateAction TEXT NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE bonCommande (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fournisseurId INTEGER NOT NULL,
+            produitId INTEGER NOT NULL,
+            categoryId INTEGER NOT NULL,
+            quantity INTEGER NOT NULL,
+            prixAchat REAL NOT NULL,
+            prixVente REAL NOT NULL,
+            dateCommande TEXT NOT NULL,
+            status TEXT NOT NULL,
+            reference TEXT NOT NULL,
+            FOREIGN KEY (fournisseurId) REFERENCES fournisseur(id),
+            FOREIGN KEY (produitId) REFERENCES product(id),
+            FOREIGN KEY (categoryId) REFERENCES category(id)
           )
         ''');
       },
@@ -527,6 +547,76 @@ class DataBaseHelper {
     } catch (e) {
       return -1;
     }
+  }
+
+  //////////////////////////////////paiement///////////////////////////////////////////
+
+  Future<int> AddPaiement(PaiementMode paiement) async {
+    try {
+      final Database db = await initDB();
+      return await db.insert(
+        'paiementMode',
+        paiement.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<List<PaiementMode>> getPaiment() async {
+    final db = await initDB();
+    final List<Map<String, Object?>> paiementMaps =
+        await db.query('paiementMode');
+
+    return paiementMaps.map((paiementMaps) {
+      return PaiementMode(
+        id: paiementMaps['id'] as int,
+        mode: paiementMaps['mode'] as String,
+        code: paiementMaps['code'] as String,
+        operateur: paiementMaps['operateur'] as String,
+        numero: paiementMaps['numero'] as String,
+      );
+    }).toList();
+  }
+
+  //////////////////////////////////paiement///////////////////////////////////////////
+
+  Future<int> AddBonCommande(AchatFournisseur achatFournisseur) async {
+    try {
+      final Database db = await initDB();
+      return await db.insert(
+        'bonCommande',
+        achatFournisseur.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<List<AchatFournisseur>> getbonCommande() async {
+    final db = await initDB();
+    final List<Map<String, Object?>> bonCommandeMaps =
+        await db.query('bonCommande');
+
+    return bonCommandeMaps.map((bonCommandeMaps) {
+      return AchatFournisseur(
+        id: bonCommandeMaps['id'] as int,
+        fournisseurId: bonCommandeMaps['fournisseurId'] as int,
+        produitId: bonCommandeMaps['produitId'] as int,
+        categoryId: bonCommandeMaps['categoryId'] as int,
+        quantity: bonCommandeMaps['quantity'] as int,
+        prixAchat: bonCommandeMaps['prixAchat'] as double,
+        prixVente: bonCommandeMaps['prixVente'] as double,
+        dateCommande: bonCommandeMaps['dateCommande'] as String,
+        status: bonCommandeMaps['status'] as String,
+        productName: bonCommandeMaps['productName'] as String,
+        fournisseurName: bonCommandeMaps['fournisseurName'] as String,
+        categoryName: bonCommandeMaps['categoryName'] as String,
+        reference: bonCommandeMaps['reference'] as String,
+      );
+    }).toList();
   }
 
   Future<void> logOut() async {

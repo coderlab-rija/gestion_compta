@@ -7,6 +7,7 @@ import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
@@ -27,6 +28,7 @@ class _EditproduitState extends State<Editproduct> {
   final price = TextEditingController();
   final categoryId = TextEditingController();
   final unity = TextEditingController();
+  final categoryName = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   void _onItemSelected(int index) {
@@ -46,21 +48,25 @@ class _EditproduitState extends State<Editproduct> {
         break;
       case 3:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const ClientHome()));
+            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
         break;
       case 4:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Facturationhome()));
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 5:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Dashboard()));
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 6:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Configurationhome()));
+            MaterialPageRoute(builder: (context) => const Dashboard()));
         break;
       case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 8:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
@@ -72,8 +78,6 @@ class _EditproduitState extends State<Editproduct> {
     super.initState();
     // Pre-fill the field
     nameProduct.text = widget.product.name;
-    quantity.text = widget.product.quantity.toString();
-    price.text = widget.product.price.toString();
     desccritpion.text = widget.product.description;
   }
 
@@ -223,11 +227,10 @@ class _EditproduitState extends State<Editproduct> {
                           db.updateProduct(Product(
                             id: widget.product.id,
                             name: nameProduct.text,
-                            quantity: int.tryParse(quantity.text) ?? 0,
-                            price: double.tryParse(price.text) ?? 0.0,
                             description: desccritpion.text,
                             categoryId: widget.product.categoryId,
-                            unity: unity.text,
+                            unityName: unity.text,
+                            categoryName: categoryName.text,
                           ));
                           Navigator.pop(context, true);
                           ScaffoldMessenger.of(context).showSnackBar(

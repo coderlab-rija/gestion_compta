@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
+import 'package:my_apk/page/configuration/paiement/paiement.dart';
 import 'package:my_apk/page/configuration/type%20produit/listTypeProduits.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/unite%20de%20gestion/listUnity.dart';
-import 'package:my_apk/page/gestion%20de%20stock/historiques/historique.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -119,7 +119,7 @@ class _StockHometState extends State<Configurationhome> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Historique(),
+                          builder: (context) => const Paiement(),
                         ),
                       );
                     },

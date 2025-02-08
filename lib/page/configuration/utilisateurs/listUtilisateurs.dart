@@ -3,37 +3,31 @@ import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/addCategory.dart';
-import 'package:my_apk/page/gestion%20de%20stock/categories/editCategory.dart';
-import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class Listcategory extends StatefulWidget {
-  const Listcategory({super.key});
+class Listutilisateurs extends StatefulWidget {
+  const Listutilisateurs({super.key});
 
   @override
-  State<Listcategory> createState() => _ListcategoryState();
+  State<Listutilisateurs> createState() => _ListTypeProduitState();
 }
 
-class _ListcategoryState extends State<Listcategory> {
+class _ListTypeProduitState extends State<Listutilisateurs> {
   late Future<List<Category>> _categoryFuture;
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _categoryFuture = fetchCategory();
-  }
-
-  Future<void> setActionInSharedPreferences(String action) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('category_action', action);
   }
 
   Future<List<Category>> fetchCategory() async {
@@ -58,25 +52,21 @@ class _ListcategoryState extends State<Listcategory> {
         break;
       case 3:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 4:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const ClientHome()));
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 5:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Facturationhome()));
+            MaterialPageRoute(builder: (context) => const Dashboard()));
         break;
       case 6:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Dashboard()));
-        break;
-      case 7:
-        Navigator.push(context,
             MaterialPageRoute(builder: (context) => const Configurationhome()));
         break;
-      case 8:
+      case 7:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
@@ -84,33 +74,134 @@ class _ListcategoryState extends State<Listcategory> {
   }
 
   void _addProduit() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const Addcategory()),
-    ).then((value) {
-      if (value == true) {
-        setState(() {
-          _categoryFuture = fetchCategory();
-        });
-      }
-    });
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Ajouter un type de produit'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nom'),
+              ),
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () async {
+                String name = _nameController.text;
+                String description = _descriptionController.text;
+
+                if (name.isNotEmpty && description.isNotEmpty) {
+                  final dbHelper = DataBaseHelper();
+                  Category newCategory = Category(
+                    name: name,
+                    description: description,
+                  );
+                  await dbHelper.addCategory(newCategory);
+                  setState(() {
+                    _categoryFuture = fetchCategory();
+                  });
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Type de produit ajouté')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Veuillez remplir tous les champs')),
+                  );
+                }
+              },
+              child: const Text('Ajouter'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editTypeProduct(Category category) {
+    _nameController.text = category.name;
+    _descriptionController.text = category.description;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Modifier un type de produit'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nom'),
+              ),
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () async {
+                String name = _nameController.text;
+                String description = _descriptionController.text;
+
+                if (name.isNotEmpty && description.isNotEmpty) {
+                  final dbHelper = DataBaseHelper();
+                  Category updatedCategory = Category(
+                    id: category.id,
+                    name: name,
+                    description: description,
+                  );
+                  await dbHelper.updateCategory(updatedCategory);
+                  setState(() {
+                    _categoryFuture = fetchCategory();
+                  });
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Type de produit mis à jour')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Veuillez remplir tous les champs')),
+                  );
+                }
+              },
+              child: const Text('Mettre à jour'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("List of Categories"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addProduit,
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-        ],
+        title: const Text("Listes des types de produits"),
       ),
       drawer: Sidebar(onItemSelected: _onItemSelected),
       body: FutureBuilder<List<Category>>(
@@ -121,13 +212,13 @@ class _ListcategoryState extends State<Listcategory> {
           } else if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No categories found"));
+            return const Center(child: Text("Aucune catégorie trouvée"));
           } else {
-            final categories = snapshot.data!;
+            final typeProduct = snapshot.data!;
             return ListView.builder(
-              itemCount: categories.length,
+              itemCount: typeProduct.length,
               itemBuilder: (context, index) {
-                final category = categories[index];
+                final response = typeProduct[index];
                 return Card(
                   margin:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -144,7 +235,7 @@ class _ListcategoryState extends State<Listcategory> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              category.name,
+                              response.name,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -154,38 +245,17 @@ class _ListcategoryState extends State<Listcategory> {
                             Row(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.info,
-                                      color: Colors.blue),
-                                  onPressed: () {
-                                    _showDetails(context, category);
-                                  },
-                                ),
-                                IconButton(
                                   icon: const Icon(Icons.edit,
                                       color: Colors.orange),
-                                  onPressed: () async {
-                                    await setActionInSharedPreferences(
-                                        'Modification');
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            Editcategorie(category: category),
-                                      ),
-                                    ).then((value) {
-                                      if (value == true) {
-                                        setState(() {
-                                          _categoryFuture = fetchCategory();
-                                        });
-                                      }
-                                    });
+                                  onPressed: () {
+                                    _editTypeProduct(response);
                                   },
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete,
                                       color: Colors.red),
                                   onPressed: () {
-                                    _deleteCategorie(category);
+                                    _deleteCategorie(response);
                                   },
                                 ),
                               ],
@@ -199,7 +269,7 @@ class _ListcategoryState extends State<Listcategory> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                category.description,
+                                response.description,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey[800],
@@ -219,26 +289,11 @@ class _ListcategoryState extends State<Listcategory> {
           }
         },
       ),
-    );
-  }
-
-  void _showDetails(BuildContext context, Category category) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Category Details"),
-          content: Text(
-            "Name: ${category.name}\nDescription: ${category.description}",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Close"),
-            ),
-          ],
-        );
-      },
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addProduit,
+        child: const Icon(Icons.add),
+        tooltip: 'Ajouter un type de produit',
+      ),
     );
   }
 
