@@ -11,6 +11,8 @@ import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
 import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeProduct.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/editProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -98,6 +100,7 @@ class _ListproduitState extends State<Listproduct> {
       return Unite(
         id: clientMaps['id'] as int,
         name: clientMaps['name'] as String,
+        unite: clientMaps['unite'] as String,
       );
     }).toList();
   }
@@ -140,6 +143,22 @@ class _ListproduitState extends State<Listproduct> {
       case 8:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
+        break;
+      case 9:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ListBoncommande()));
+        break;
+      case 10:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Listproduct()));
+        break;
+      case 11:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Inventaire()));
+        break;
+      case 12:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
         break;
     }
   }
@@ -200,7 +219,7 @@ class _ListproduitState extends State<Listproduct> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Ajouter un produit'),
+          //title: const Text('Ajouter un produit'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

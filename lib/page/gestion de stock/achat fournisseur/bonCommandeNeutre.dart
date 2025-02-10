@@ -103,6 +103,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
       return Unite(
         id: clientMaps['id'] as int,
         name: clientMaps['name'] as String,
+        unite: clientMaps['unite'] as String,
       );
     }).toList();
   }

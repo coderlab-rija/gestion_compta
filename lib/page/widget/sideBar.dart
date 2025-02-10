@@ -36,17 +36,7 @@ class Sidebar extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.inventory),
                 title: const Text('Stocks articles'),
-                onTap: () => onItemSelected(10),
-              ),
-              ListTile(
-                leading: const Icon(Icons.monetization_on_outlined),
-                title: const Text('Mouvement de stocks'),
                 onTap: () => onItemSelected(11),
-              ),
-              ListTile(
-                leading: const Icon(Icons.history),
-                title: const Text('Historic'),
-                onTap: () => onItemSelected(12),
               ),
             ],
           ),
@@ -62,7 +52,7 @@ class Sidebar extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.list),
                 title: const Text('Faire une achat'),
-                onTap: () => onItemSelected(13),
+                onTap: () => onItemSelected(12),
               ),
               ListTile(
                 leading: const Icon(Icons.list),

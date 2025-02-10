@@ -5,7 +5,6 @@ import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
 import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
-import 'package:my_apk/page/gestion%20de%20stock/historiques/historique.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -37,8 +36,8 @@ class _HomePageState extends State<HomePage> {
     const ListBoncommande(),
     const Listproduct(),
     const Inventaire(),
-    const Historique(),
     const Boncommandeneutre(),
+    const ListBoncommande(),
   ];
 
   void _onItemSelected(int index) {
@@ -73,9 +72,13 @@ class _HomePageState extends State<HomePage> {
                                               ? 'Log out'
                                               : _selectedIndex == 9
                                                   ? 'Commandes fournisseurs'
-                                                  : _selectedIndex == 9
-                                                      ? 'Listes des articles'
-                                                      : 'Faire une achat',
+                                                  : _selectedIndex == 10
+                                                      ? 'Listes des articles' //OKK//
+                                                      : _selectedIndex == 11
+                                                          ? 'Mouvement de stock' //OKK//
+                                                          : _selectedIndex == 12
+                                                              ? 'Faire une achat'
+                                                              : 'Lstes des commandes',
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),

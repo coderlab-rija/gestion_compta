@@ -16,7 +16,7 @@ import 'package:path/path.dart';
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'rija-base31.db');
+    final path = join(databasePath, 'rija-base32.db');
     return openDatabase(
       path,
       version: 1,
@@ -34,7 +34,7 @@ class DataBaseHelper {
         );
 
         await db.execute(
-          'CREATE TABLE unity (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
+          'CREATE TABLE unity (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, unite TEXT NOT NULL)',
         );
 
         await db.execute(
@@ -389,6 +389,7 @@ class DataBaseHelper {
       return Unite(
         id: uniteMaps['id'] as int,
         name: uniteMaps['name'] as String,
+        unite: uniteMaps['unite'] as String,
       );
     }).toList();
   }
@@ -522,6 +523,7 @@ class DataBaseHelper {
       return Unite(
         id: clientMaps['id'] as int,
         name: clientMaps['name'] as String,
+        unite: clientMaps['unite'] as String,
       );
     }).toList();
   }
