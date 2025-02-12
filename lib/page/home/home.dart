@@ -8,7 +8,6 @@ import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonComm
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
-import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
@@ -25,19 +24,21 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     const Profil(),
-    const StockHome(),
+    const Listproduct(),
+    const Inventaire(),
+    //const StockHome(),
     const Supplierhome(),
     const Boncommandeneutre(),
+    const ListBoncommande(),
     const ClientHome(),
     const Facturationhome(),
     const Dashboard(),
     const Configurationhome(),
+    const Inventaire(), //Historique
     const LoginScreen(),
-    const ListBoncommande(),
-    const Listproduct(),
-    const Inventaire(),
-    const Boncommandeneutre(),
-    const ListBoncommande(),
+
+    //const Boncommandeneutre(),
+    //const ListBoncommande(),
   ];
 
   void _onItemSelected(int index) {
@@ -55,30 +56,26 @@ class _HomePageState extends State<HomePage> {
           _selectedIndex == 0
               ? ''
               : _selectedIndex == 1
-                  ? 'Inventory Management'
+                  ? 'Articles'
                   : _selectedIndex == 2
-                      ? 'Listes des fournisseurs'
+                      ? 'Stocks articles'
                       : _selectedIndex == 3
-                          ? 'Achat fournisseurs'
+                          ? 'Listes des fournisseurs'
                           : _selectedIndex == 4
-                              ? 'Listes des clients'
+                              ? 'Commander'
                               : _selectedIndex == 5
-                                  ? 'Facturation'
+                                  ? 'Liste des commandes'
                                   : _selectedIndex == 6
-                                      ? 'Dashboard'
+                                      ? 'Gestion client'
                                       : _selectedIndex == 7
-                                          ? 'Configuration'
+                                          ? 'Facturation'
                                           : _selectedIndex == 8
-                                              ? 'Log out'
+                                              ? 'Dashboard'
                                               : _selectedIndex == 9
-                                                  ? 'Commandes fournisseurs'
+                                                  ? 'Configuration'
                                                   : _selectedIndex == 10
-                                                      ? 'Listes des articles' //OKK//
-                                                      : _selectedIndex == 11
-                                                          ? 'Mouvement de stock' //OKK//
-                                                          : _selectedIndex == 12
-                                                              ? 'Faire une achat'
-                                                              : 'Lstes des commandes',
+                                                      ? 'Hisotrique' //OKK//
+                                                      : 'Se deconnecter',
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
