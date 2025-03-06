@@ -4,13 +4,15 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/listBonCommande.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/addCategory.dart';
 import 'package:my_apk/page/gestion%20de%20stock/categories/editCategory.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,33 +52,45 @@ class _ListcategoryState extends State<Listcategory> {
         break;
       case 1:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const StockHome()));
+            MaterialPageRoute(builder: (context) => const Listproduct()));
         break;
       case 2:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Supplierhome()));
+            MaterialPageRoute(builder: (context) => const Inventaire()));
         break;
       case 3:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 4:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const ClientHome()));
+            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
         break;
       case 5:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Facturationhome()));
+            MaterialPageRoute(builder: (context) => const ListBoncommande()));
         break;
       case 6:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Dashboard()));
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 7:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Configurationhome()));
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 8:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 9:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 10:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Inventaire()));
+        break;
+      case 11:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;

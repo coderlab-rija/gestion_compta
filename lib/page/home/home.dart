@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
-import 'package:my_apk/page/gestion%20de%20stock/historiques/historique.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/reception/bonReceptionProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
-import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
@@ -26,19 +25,20 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     const Profil(),
-    const StockHome(),
-    const Supplierhome(),
-    const Boncommandeneutre(),
-    const ClientHome(),
-    const Facturationhome(),
-    const Dashboard(),
-    const Configurationhome(),
-    const LoginScreen(),
-    const ListBoncommande(),
     const Listproduct(),
     const Inventaire(),
-    const Historique(),
+    //const StockHome(),
+    const Supplierhome(),
     const Boncommandeneutre(),
+    const ListBoncommande(),
+    const Bonreceptionproduct(),
+    const Facturationhome(),
+    const Facturationhome(),
+    const ClientHome(),
+    const Dashboard(),
+    const Configurationhome(),
+    const Inventaire(), //Historique
+    const LoginScreen(),
   ];
 
   void _onItemSelected(int index) {
@@ -56,26 +56,30 @@ class _HomePageState extends State<HomePage> {
           _selectedIndex == 0
               ? ''
               : _selectedIndex == 1
-                  ? 'Inventory Management'
+                  ? 'Articles'
                   : _selectedIndex == 2
-                      ? 'Listes des fournisseurs'
+                      ? 'Stocks articles'
                       : _selectedIndex == 3
-                          ? 'Achat fournisseurs'
+                          ? 'Listes des fournisseurs'
                           : _selectedIndex == 4
-                              ? 'Listes des clients'
+                              ? 'Commander'
                               : _selectedIndex == 5
-                                  ? 'Facturation'
+                                  ? 'Bon de commande'
                                   : _selectedIndex == 6
-                                      ? 'Dashboard'
+                                      ? 'Bon de reception'
                                       : _selectedIndex == 7
-                                          ? 'Configuration'
+                                          ? 'Facturation'
                                           : _selectedIndex == 8
-                                              ? 'Log out'
+                                              ? 'Gestion client'
                                               : _selectedIndex == 9
-                                                  ? 'Commandes fournisseurs'
-                                                  : _selectedIndex == 9
-                                                      ? 'Listes des articles'
-                                                      : 'Faire une achat',
+                                                  ? 'Facturation'
+                                                  : _selectedIndex == 10
+                                                      ? 'Dashboard'
+                                                      : _selectedIndex == 11
+                                                          ? 'Configuration'
+                                                          : _selectedIndex == 12
+                                                              ? 'Hisotrique'
+                                                              : 'Se deconnecter',
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),

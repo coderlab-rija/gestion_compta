@@ -25,6 +25,8 @@ dependencies:
   printing: ^5.0.0
   mailer: ^6.2.0
   file_picker: ^8.1.4
+  collection: ^1.15.0
+  number_to_character: ^0.0.12
 
 dev_dependencies:
   flutter_test:

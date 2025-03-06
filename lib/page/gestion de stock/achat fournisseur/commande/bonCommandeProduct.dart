@@ -9,11 +9,12 @@ import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
-import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 import 'package:sqflite/sqflite.dart';
@@ -38,6 +39,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
   TextEditingController prixVenteController = TextEditingController();
   TextEditingController dateCommandeController = TextEditingController();
   String status = "En cours";
+  String? selectedPaymentType;
 
   @override
   void initState() {
@@ -49,13 +51,14 @@ class _BoncommandeState extends State<Boncommandeproduct> {
     selectedCategoryId = widget.product.categoryId;
     selectedUnityId = widget.product.unityId;
     selectedFournisseurId = null;
+    selectedPaymentType = 'Espèce';
   }
 
-  String generateReference(int fournisseurId, int produitId) {
+  String generateReference(int fournisseurId) {
     String dateCommande =
         DateTime.now().toIso8601String().substring(0, 10).replaceAll("-", "");
     String randomCode = _generateRandomString(5);
-    return 'Achat/Prod-$fournisseurId-$produitId-$dateCommande-$randomCode';
+    return 'Achat/Fournisseur-$fournisseurId-$dateCommande-$randomCode';
   }
 
   String _generateRandomString(int length) {
@@ -87,6 +90,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
       return Unite(
         id: clientMaps['id'] as int,
         name: clientMaps['name'] as String,
+        unite: clientMaps['unite'] as String,
       );
     }).toList();
   }
@@ -118,33 +122,45 @@ class _BoncommandeState extends State<Boncommandeproduct> {
         break;
       case 1:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const StockHome()));
+            MaterialPageRoute(builder: (context) => const Listproduct()));
         break;
       case 2:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Supplierhome()));
+            MaterialPageRoute(builder: (context) => const Inventaire()));
         break;
       case 3:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 4:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const ClientHome()));
+            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
         break;
       case 5:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Facturationhome()));
+            MaterialPageRoute(builder: (context) => const ListBoncommande()));
         break;
       case 6:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Dashboard()));
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 7:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Configurationhome()));
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
         break;
       case 8:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 9:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 10:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Inventaire()));
+        break;
+      case 11:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
@@ -164,6 +180,8 @@ class _BoncommandeState extends State<Boncommandeproduct> {
       return;
     }
 
+    String reference = generateReference(selectedFournisseurId!);
+
     final newCommande = {
       'produitId': widget.product.id ?? 0,
       'quantity': int.parse(quantityController.text),
@@ -174,8 +192,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
       'categoryId': selectedCategoryId!,
       'fournisseurId': selectedFournisseurId!,
       'status': status,
-      'reference':
-          generateReference(selectedFournisseurId!, widget.product.id ?? 0),
+      'reference': reference,
     };
 
     final dbHelper = DataBaseHelper();
@@ -301,6 +318,31 @@ class _BoncommandeState extends State<Boncommandeproduct> {
               controller: dateCommandeController,
               decoration: const InputDecoration(labelText: "Date de commande"),
             ),
+            /*DropdownButtonFormField<String>(
+              value: selectedPaymentType,
+              onChanged: (newValue) {
+                setState(() {
+                  selectedPaymentType = newValue;
+                });
+              },
+              items: const [
+                DropdownMenuItem(
+                  value: 'Bancaire',
+                  child: Text('Bancaire'),
+                ),
+                DropdownMenuItem(
+                  value: 'Espèce',
+                  child: Text('Espèce'),
+                ),
+                DropdownMenuItem(
+                  value: 'Mobile Money',
+                  child: Text('Mobile Money'),
+                ),
+              ],
+              decoration: const InputDecoration(
+                labelText: 'Type de paiement',
+              ),
+            ),*/
             const Spacer(),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),

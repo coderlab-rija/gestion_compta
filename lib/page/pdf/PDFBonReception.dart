@@ -1,16 +1,16 @@
-import 'package:intl/intl.dart';
 import 'package:my_apk/database/achatFournisseur.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:number_to_character/number_to_character.dart';
 
-class Pdfboncommande {
+class PDFBonReception {
   Future<void> generatePdf(List<AchatFournisseur> produits) async {
     final pdf = pw.Document();
     final total = produits.fold(
         0.0, (sum, produit) => sum + produit.prixAchat * produit.quantity);
-    final totalInWords = NumberFormat('###0', 'fr_FR')
-        .format(total.toInt()); // Utilisation de intl
+    var totalInWords = NumberToCharacterConverter('fr');
+    String response = totalInWords.getTextForNumber(total.round());
 
     pdf.addPage(
       pw.Page(
@@ -20,7 +20,7 @@ class Pdfboncommande {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                "Bon de Commande",
+                "Bon de Reception",
                 style: pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -62,12 +62,12 @@ class Pdfboncommande {
               ),
               pw.SizedBox(height: 10),
               pw.Text(
-                "Total : ${total.toStringAsFixed(2)} Ar",
+                "Somme totale: ${produits.fold(0.0, (sum, produit) => sum + produit.prixAchat * produit.quantity).toStringAsFixed(2)} Ar",
                 style:
                     pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
               pw.Text(
-                "Total en lettres : $totalInWords Ar", // Affichage du total en lettres
+                "Somme totale de $response Ariary",
                 style: const pw.TextStyle(fontSize: 16),
               ),
               pw.SizedBox(height: 20),

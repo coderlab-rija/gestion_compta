@@ -4,10 +4,13 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
@@ -41,29 +44,45 @@ class _ListunityState extends State<Listunity> {
         break;
       case 1:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const StockHome()));
+            MaterialPageRoute(builder: (context) => const Listproduct()));
         break;
       case 2:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Supplierhome()));
+            MaterialPageRoute(builder: (context) => const Inventaire()));
         break;
       case 3:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const ClientHome()));
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
         break;
       case 4:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Facturationhome()));
+            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
         break;
       case 5:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Dashboard()));
+            MaterialPageRoute(builder: (context) => const ListBoncommande()));
         break;
       case 6:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const Configurationhome()));
+            MaterialPageRoute(builder: (context) => const ClientHome()));
         break;
       case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
+        break;
+      case 8:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 9:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 10:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Inventaire()));
+        break;
+      case 11:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
@@ -73,6 +92,7 @@ class _ListunityState extends State<Listunity> {
   void _showEditPopup(Unite unity) {
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: unity.name);
+    final uniteController = TextEditingController(text: unity.unite);
 
     showDialog(
       context: context,
@@ -95,6 +115,16 @@ class _ListunityState extends State<Listunity> {
                     return null;
                   },
                 ),
+                TextFormField(
+                  controller: uniteController,
+                  decoration: const InputDecoration(labelText: "Unité"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Unité requis";
+                    }
+                    return null;
+                  },
+                ),
               ],
             ),
           ),
@@ -111,6 +141,7 @@ class _ListunityState extends State<Listunity> {
                     Unite(
                       id: unity.id,
                       name: nameController.text,
+                      unite: uniteController.text,
                     ),
                   );
                   setState(() {
@@ -134,6 +165,7 @@ class _ListunityState extends State<Listunity> {
   void _addUnity() {
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
+    final uniteController = TextEditingController();
 
     showDialog(
       context: context,
@@ -142,15 +174,31 @@ class _ListunityState extends State<Listunity> {
           title: const Text('Ajouter une nouvelle unité'),
           content: Form(
             key: formKey,
-            child: TextFormField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: "Nom de l'unité"),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Le nom de l'unité est requis.";
-                }
-                return null;
-              },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration:
+                      const InputDecoration(labelText: "Nom de l'unité"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Le nom est requis";
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: uniteController,
+                  decoration: const InputDecoration(labelText: "Unité"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "L'unité est requise";
+                    }
+                    return null;
+                  },
+                ),
+              ],
             ),
           ),
           actions: [
@@ -162,7 +210,8 @@ class _ListunityState extends State<Listunity> {
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   final dbHelper = DataBaseHelper();
-                  await dbHelper.AddUnity(Unite(name: nameController.text));
+                  await dbHelper.AddUnity(Unite(
+                      name: nameController.text, unite: uniteController.text));
                   setState(() {
                     _unityFuture = fetchUnity();
                   });
@@ -214,8 +263,16 @@ class _ListunityState extends State<Listunity> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        //List//
                         Text(
                           response.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          response.unite,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

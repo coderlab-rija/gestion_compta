@@ -5,7 +5,7 @@ import 'package:my_apk/page/profils/profil_Pic.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/profils/setting_profils.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
