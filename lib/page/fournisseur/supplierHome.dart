@@ -4,13 +4,13 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/fournisseur/editSupplier.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/listBonCommande.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 

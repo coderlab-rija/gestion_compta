@@ -9,9 +9,9 @@ import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/listBonCommande.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -30,6 +30,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
   late Future<List<Supplier>> _fournisseurFuture;
   late Future<List<Category>> _categoryFuture;
   late Future<List<Product>> _produitFuture;
+  List<Map<String, dynamic>> selectedProducts = [];
 
   int? selectedCategoryId;
   int? selectedUnityId;
@@ -40,6 +41,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
   TextEditingController prixVenteController = TextEditingController();
   TextEditingController dateCommandeController = TextEditingController();
   String status = "En cours";
+  String? selectedPaymentType;
 
   @override
   void initState() {
@@ -48,15 +50,15 @@ class _BoncommandeState extends State<Boncommandeneutre> {
     _fournisseurFuture = getFournisseurs();
     _categoryFuture = getCategory();
     _produitFuture = getProduct();
-
+    selectedPaymentType = 'Espèce';
     dateCommandeController.text = DateTime.now().toString().substring(0, 10);
   }
 
-  String generateReference(int fournisseurId, int produitId) {
+  String generateReference(int fournisseurId) {
     String dateCommande =
         DateTime.now().toIso8601String().substring(0, 10).replaceAll("-", "");
     String randomCode = _generateRandomString(5);
-    return 'Achat/Prod-$fournisseurId-$produitId-$dateCommande-$randomCode';
+    return 'Achat/Fournisseur-$fournisseurId-$dateCommande-$randomCode';
   }
 
   String _generateRandomString(int length) {
@@ -96,6 +98,33 @@ class _BoncommandeState extends State<Boncommandeneutre> {
     }).toList();
   }
 
+  Future<List<Product>> getFilteredProducts(int? categoryId) async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    final List<Map<String, Object?>> produitMaps = await db.query(
+      'product',
+      where: 'categoryId = ?',
+      whereArgs: [categoryId],
+    );
+    return produitMaps.map((produitMap) {
+      return Product(
+        id: produitMap['id'] as int,
+        name: produitMap['name'] as String,
+        description: produitMap['description'] as String,
+        categoryId: produitMap['categoryId'] as int,
+        unityId: produitMap['unityId'] as int,
+      );
+    }).toList();
+  }
+
+  void _onCategoryChanged(int? newCategoryId) {
+    setState(() {
+      selectedCategoryId = newCategoryId;
+      _produitFuture = getFilteredProducts(newCategoryId);
+      selectedProduitId = null; // Réinitialiser le produit sélectionné
+    });
+  }
+
   Future<List<Unite>> getUnity() async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
@@ -125,6 +154,68 @@ class _BoncommandeState extends State<Boncommandeneutre> {
         dateCreation: fournisseurMap['dateCreation'] as String,
       );
     }).toList();
+  }
+
+  Future<void> _addBonCommande() async {
+    if (selectedProducts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez ajouter au moins un produit')),
+      );
+      return;
+    }
+
+    if (selectedFournisseurId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez sélectionner un fournisseur')),
+      );
+      return;
+    }
+
+    final db = await DataBaseHelper().initDB();
+    String reference = generateReference(selectedFournisseurId!);
+
+    for (var produit in selectedProducts) {
+      final produitAvecFournisseur = {
+        'produitId': produit['produitId'],
+        'quantity': produit['quantity'],
+        'prixAchat': produit['prixAchat'],
+        'prixVente': produit['prixVente'],
+        'dateCommande':
+            DateTime.parse(dateCommandeController.text).toIso8601String(),
+        'categoryId': selectedCategoryId!,
+        'fournisseurId': selectedFournisseurId!,
+        'status': status,
+        'reference': reference,
+      };
+
+      await db.insert('bonCommande', produitAvecFournisseur,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Commande ajoutée avec succès')),
+    );
+    setState(() {
+      selectedProducts.clear();
+    });
+  }
+
+  void _addProductToList() {
+    if (selectedProduitId != null &&
+        quantityController.text.isNotEmpty &&
+        prixAchatController.text.isNotEmpty) {
+      setState(() {
+        selectedProducts.add({
+          'produitId': selectedProduitId,
+          'quantity': int.parse(quantityController.text),
+          'prixAchat': double.parse(prixAchatController.text),
+          'prixVente': double.tryParse(prixVenteController.text) ?? 0.0,
+        });
+        quantityController.clear();
+        prixAchatController.clear();
+        prixVenteController.clear();
+      });
+    }
   }
 
   void _onItemSelected(int index) {
@@ -181,123 +272,52 @@ class _BoncommandeState extends State<Boncommandeneutre> {
     }
   }
 
-  Future<void> _addBonCommande() async {
-    if (quantityController.text.isEmpty ||
-        prixAchatController.text.isEmpty ||
-        prixVenteController.text.isEmpty ||
-        selectedCategoryId == null ||
-        selectedUnityId == null ||
-        selectedFournisseurId == null ||
-        selectedProduitId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez remplir tous les champs')),
-      );
-      return;
-    }
-
-    final newCommande = {
-      'produitId': selectedProduitId!,
-      'quantity': int.parse(quantityController.text),
-      'prixAchat': double.parse(prixAchatController.text),
-      'prixVente': double.parse(prixVenteController.text),
-      'dateCommande':
-          DateTime.parse(dateCommandeController.text).toIso8601String(),
-      'categoryId': selectedCategoryId!,
-      'fournisseurId': selectedFournisseurId!,
-      'status': status,
-      'reference':
-          generateReference(selectedFournisseurId!, selectedProduitId!),
-    };
-
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    await db.insert(
-      'bonCommande',
-      newCommande,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Commande ajoutée avec succès')),
-    );
-
-    Navigator.pop(context);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            TextField(
+              controller: dateCommandeController,
+              decoration: const InputDecoration(labelText: "Date de commande"),
+              readOnly: true,
+            ),
             FutureBuilder<List<Category>>(
               future: _categoryFuture,
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const CircularProgressIndicator();
-                }
-                final categories = snapshot.data!;
-                selectedCategoryId ??=
-                    categories.isNotEmpty ? categories[0].id : null;
-
+                if (!snapshot.hasData) return const CircularProgressIndicator();
                 return DropdownButtonFormField<int>(
                   value: selectedCategoryId,
-                  onChanged: (newValue) {
-                    setState(() {
-                      selectedCategoryId = newValue;
-                    });
-                  },
-                  items: categories.map((category) {
-                    return DropdownMenuItem<int>(
-                      value: category.id,
-                      child: Text(category.name),
-                    );
-                  }).toList(),
-                  decoration: const InputDecoration(
-                    labelText: "Catégorie",
-                  ),
+                  onChanged: _onCategoryChanged,
+                  items: snapshot.data!
+                      .map((category) => DropdownMenuItem<int>(
+                            value: category.id,
+                            child: Text(category.name),
+                          ))
+                      .toList(),
+                  decoration: const InputDecoration(labelText: "Catégorie"),
                 );
               },
             ),
             FutureBuilder<List<Product>>(
               future: _produitFuture,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return Text('Erreur : ${snapshot.error}');
-                  } else if (snapshot.hasData && snapshot.data != null) {
-                    final produits = snapshot.data!;
-                    if (produits.isEmpty) {
-                      return const Text("Aucun produit disponible");
-                    }
-                    selectedProduitId ??= produits[0].id;
-                    return DropdownButtonFormField<int>(
-                      value: selectedProduitId,
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedProduitId = newValue;
-                        });
-                      },
-                      items: produits.map((produit) {
-                        return DropdownMenuItem<int>(
-                          value: produit.id,
-                          child: Text(produit.name),
-                        );
-                      }).toList(),
-                      decoration: const InputDecoration(
-                        labelText: "Produit",
-                      ),
-                    );
-                  } else {
-                    return const Text("Impossible de charger les produits");
-                  }
-                }
-                return const CircularProgressIndicator();
+                if (!snapshot.hasData) return const CircularProgressIndicator();
+                return DropdownButtonFormField<int>(
+                  value: selectedProduitId,
+                  onChanged: (newValue) =>
+                      setState(() => selectedProduitId = newValue),
+                  items: snapshot.data!
+                      .map((produit) => DropdownMenuItem<int>(
+                            value: produit.id,
+                            child: Text(produit.name),
+                          ))
+                      .toList(),
+                  decoration: const InputDecoration(labelText: "Produit"),
+                );
               },
             ),
             FutureBuilder<List<Unite>>(
@@ -357,41 +377,96 @@ class _BoncommandeState extends State<Boncommandeneutre> {
                 );
               },
             ),
-            TextFormField(
+            TextField(
               controller: quantityController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: "Quantité"),
             ),
-            TextFormField(
+            TextField(
               controller: prixAchatController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: "Prix d'achat"),
             ),
-            TextFormField(
+            TextField(
               controller: prixVenteController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: "Prix de vente"),
             ),
-            TextFormField(
-              controller: dateCommandeController,
-              decoration: const InputDecoration(labelText: "Date de commande"),
-              readOnly: true,
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: ElevatedButton(
-                onPressed: () async {
-                  await _addBonCommande();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ListBoncommande()),
-                  );
-                },
-                child: const Text("Ajouter le bon de commande"),
+            /*DropdownButtonFormField<String>(
+              value: selectedPaymentType,
+              onChanged: (newValue) {
+                setState(() {
+                  selectedPaymentType = newValue;
+                });
+              },
+              items: const [
+                DropdownMenuItem(
+                  value: 'Bancaire',
+                  child: Text('Bancaire'),
+                ),
+                DropdownMenuItem(
+                  value: 'Espèce',
+                  child: Text('Espèce'),
+                ),
+                DropdownMenuItem(
+                  value: 'Mobile Money',
+                  child: Text('Mobile Money'),
+                ),
+              ],
+              decoration: const InputDecoration(
+                labelText: 'Type de paiement',
               ),
-            )
+            ),*/
+            ElevatedButton(
+              onPressed: _addProductToList,
+              child: const Text("Ajouter Produit"),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: selectedProducts.length,
+              itemBuilder: (context, index) {
+                final produit = selectedProducts[index];
+                print(produit);
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: Icon(Icons.shopping_cart,
+                        color: Theme.of(context).primaryColor),
+                    title: Text(
+                      "Produit ${produit['produitId']}",
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    subtitle: Text(
+                      "Quantité: ${produit['quantity']} - Prix: ${produit['prixAchat']}",
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () =>
+                          setState(() => selectedProducts.removeAt(index)),
+                    ),
+                  ),
+                );
+              },
+            ),
+            ElevatedButton(
+              onPressed: _addBonCommande,
+              child: const Text("Valider la Commande"),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                    vertical: 14.0, horizontal: 30.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+              ),
+            ),
           ],
         ),
       ),

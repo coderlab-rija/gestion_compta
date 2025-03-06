@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/reception/bonReceptionProduct.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -30,15 +31,14 @@ class _HomePageState extends State<HomePage> {
     const Supplierhome(),
     const Boncommandeneutre(),
     const ListBoncommande(),
-    const ClientHome(),
+    const Bonreceptionproduct(),
     const Facturationhome(),
+    const Facturationhome(),
+    const ClientHome(),
     const Dashboard(),
     const Configurationhome(),
     const Inventaire(), //Historique
     const LoginScreen(),
-
-    //const Boncommandeneutre(),
-    //const ListBoncommande(),
   ];
 
   void _onItemSelected(int index) {
@@ -64,18 +64,22 @@ class _HomePageState extends State<HomePage> {
                           : _selectedIndex == 4
                               ? 'Commander'
                               : _selectedIndex == 5
-                                  ? 'Liste des commandes'
+                                  ? 'Bon de commande'
                                   : _selectedIndex == 6
-                                      ? 'Gestion client'
+                                      ? 'Bon de reception'
                                       : _selectedIndex == 7
                                           ? 'Facturation'
                                           : _selectedIndex == 8
-                                              ? 'Dashboard'
+                                              ? 'Gestion client'
                                               : _selectedIndex == 9
-                                                  ? 'Configuration'
+                                                  ? 'Facturation'
                                                   : _selectedIndex == 10
-                                                      ? 'Hisotrique' //OKK//
-                                                      : 'Se deconnecter',
+                                                      ? 'Dashboard'
+                                                      : _selectedIndex == 11
+                                                          ? 'Configuration'
+                                                          : _selectedIndex == 12
+                                                              ? 'Hisotrique'
+                                                              : 'Se deconnecter',
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),

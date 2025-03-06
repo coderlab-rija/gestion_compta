@@ -4,7 +4,7 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
 import 'package:my_apk/page/gestion%20de%20stock/stockHome.dart';
@@ -101,7 +101,6 @@ class _PaiementState extends State<Paiement> {
                   onChanged: (value) {
                     setState(() {
                       selectedMode = value!;
-                      // Reset fields when mode changes
                       selectedOperateur =
                           selectedMode == "Mobile Money" ? "Telma" : "N/A";
                       numeroController.clear();
@@ -136,17 +135,6 @@ class _PaiementState extends State<Paiement> {
                       return null;
                     },
                   ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: codeController,
-                  decoration: const InputDecoration(labelText: "Code"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Le code est requis.";
-                    }
-                    return null;
-                  },
-                ),
               ],
             ),
           ),

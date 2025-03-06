@@ -6,12 +6,12 @@ import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
-import 'package:my_apk/page/facturation/facturationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeNeutre.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/bonCommandeProduct.dart';
-import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/listBonCommande.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeNeutre.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeProduct.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/listBonCommande.dart';
 import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/editProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
@@ -156,52 +156,6 @@ class _ListproduitState extends State<Listproduct> {
             MaterialPageRoute(builder: (context) => const LoginScreen()));
         break;
     }
-  }
-
-  void _showCategoryFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Selectioner le categorie"),
-          content: FutureBuilder<List<Category>>(
-            future: _categoryFuture,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const CircularProgressIndicator();
-              }
-
-              final categories = snapshot.data!;
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    title: const Text("Tous"),
-                    onTap: () {
-                      setState(() {
-                        selectedCategoryId = null;
-                        _productFuture = getProduct();
-                      });
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  ...categories.map((category) => ListTile(
-                        title: Text(category.name),
-                        onTap: () {
-                          setState(() {
-                            selectedCategoryId = category.id;
-                            _productFuture = getProduct();
-                          });
-                          Navigator.of(context).pop();
-                        },
-                      )),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _showAddProductDialog() async {

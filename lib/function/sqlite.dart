@@ -16,7 +16,8 @@ import 'package:path/path.dart';
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'rija-base32.db');
+    final path = join(databasePath, 'rija-base35.db');
+    print('Database path: $path');
     return openDatabase(
       path,
       version: 1,
@@ -43,6 +44,10 @@ class DataBaseHelper {
 
         await db.execute(
           'CREATE TABLE paiementMode (id INTEGER PRIMARY KEY AUTOINCREMENT, mode TEXT NOT NULL, code TEXT NOT NULL, operateur TEXT, numero TEXT)',
+        );
+
+        await db.execute(
+          'CREATE TABLE bonReception (id INTEGER PRIMARY KEY AUTOINCREMENT, achatFournisseurId TEXT NOT NULL, dateReception TEXT NOT NULL, referenceReception TEXT)',
         );
 
         await db.execute('CREATE TABLE client ('
@@ -620,109 +625,4 @@ class DataBaseHelper {
       );
     }).toList();
   }
-
-  Future<void> logOut() async {
-    final Database db = await initDB();
-    await db.delete('session');
-  }
-
-  // Future<void> updateCategory(Category category) async {
-  //   final db = await initDB();
-
-  //   await db.update(
-  //     'category',
-  //     category.toMap(),
-  //     where: 'id = ?',
-  //     whereArgs: [category.id],
-  //   );
-
-  //   String action = await getActionFromSharedPreferences();
-
-  //   final prefs = await SharedPreferences.getInstance();
-  //   String username = prefs.getString('username') ?? 'Unknown';
-
-  //   final historique = HistoriqueCategory(
-  //     action: action,
-  //     categoryId: category.id.toString(),
-  //     categoryName: category.name,
-  //     username: username,
-  //     dateAction: DateTime.now().toIso8601String(),
-  //   );
-
-  //   await db.insert(
-  //     'historique_categorie',
-  //     historique.toMap(),
-  //     conflictAlgorithm: ConflictAlgorithm.replace,
-  //   );
-  // }
-
-  // Future<List<Produits>> getProduits() async {
-  //   final db = await initDB();
-  //   final List<Map<String, Object?>> productsMaps = await db.query('produits');
-
-  //   return productsMaps.map((productMap) {
-  //     return Produits(
-  //       id: productMap['id'] as int,
-  //       nom: productMap['nom'] as String,
-  //       prixUnitaire: productMap['prixUnitaire'] as double,
-  //       quantiter: productMap['quantiter'] as int,
-  //       description: productMap['description'] as String,
-  //     );
-  //   }).toList();
-  // }
-
-  // Future<int> ajoutProduit(Produits produit) async {
-  //   try {
-  //     final Database db = await initDB();
-  //     return await db.insert(
-  //       'produits',
-  //       produit.toMap(),
-  //       conflictAlgorithm: ConflictAlgorithm.replace,
-  //     );
-  //   } catch (e) {
-  //     return -1;
-  //   }
-  // }
-
-  // Future<int> addProduct(Product produit) async {
-  //   final Database db = await initDB();
-
-  //   List<Map<String, dynamic>> categorieExistante = await db.query(
-  //     'category',
-  //     where: 'id = ?',
-  //     whereArgs: [produit.categoryId],
-  //   );
-
-  //   if (categorieExistante.isEmpty) {
-  //     return -1;
-  //   }
-  //   return await db.insert(
-  //     'product',
-  //     produit.toMap(),
-  //     conflictAlgorithm: ConflictAlgorithm.replace,
-  //   );
-  // }
-
-  // Future<int> addCategory(Category category) async {
-  //   try {
-  //     final Database db = await initDB();
-  //     return await db.insert(
-  //       'category',
-  //       category.toMap(),
-  //       conflictAlgorithm: ConflictAlgorithm.replace,
-  //     );
-  //   } catch (e) {
-  //     return -1;
-  //   }
-  // }
-
-  // Future<void> updateCategory(Category category) async {
-  //   final db = await initDB();
-  //   await db.update(
-  //     'category',
-  //     category.toMap(),
-  //     where: 'id = ?',
-  //     whereArgs: [category.id],
-  //   );
-  // }
 }
