@@ -1,0 +1,2 @@
+/home/ramilison/Works/gestion_compta/android/app/.cxx/Debug/5b3f1j5y/x86/CMakeFiles/edit_cache.dir
+/home/ramilison/Works/gestion_compta/android/app/.cxx/Debug/5b3f1j5y/x86/CMakeFiles/rebuild_cache.dir

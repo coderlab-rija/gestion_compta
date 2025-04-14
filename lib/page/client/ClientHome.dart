@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:my_apk/database/client.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/client/editClient.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:open_file/open_file.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ClientHome extends StatefulWidget {
   const ClientHome({super.key});
@@ -13,11 +17,18 @@ class ClientHome extends StatefulWidget {
 class _ClientHomeState extends State<ClientHome> {
   late Future<List<Client>> _clientFuture;
   bool? isProFilter;
+  String? selectedFilePath;
 
   @override
   void initState() {
     super.initState();
     _clientFuture = getClient();
+  }
+
+  Future<String> _generateClientCode() async {
+    DataBaseHelper dbHelper = DataBaseHelper();
+    String clientCode = await dbHelper.generateClientCode();
+    return clientCode;
   }
 
   Future<List<Client>> getClient() async {
@@ -47,6 +58,7 @@ class _ClientHomeState extends State<ClientHome> {
         contact: clientMap['contact'] as String,
         pro: (clientMap['pro'] as int) == 1,
         codeClient: clientMap['codeClient'] as String,
+        filePath: clientMap['filePath'] as String?,
       );
     }).toList();
   }
@@ -97,21 +109,83 @@ class _ClientHomeState extends State<ClientHome> {
     );
   }
 
-  void _addClient() {
+  void _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      PlatformFile file = result.files.first;
+      setState(() {
+        selectedFilePath = file.path;
+      });
+      if (kDebugMode) {
+        print("Fichier sélectionné : ${file.path}");
+      }
+    } else {
+      if (kDebugMode) {
+        print("Aucun fichier sélectionné.");
+      }
+    }
+  }
+
+  Future<void> updateClientFilePath(int clientId, String filePath) async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    await db.update(
+      'client',
+      {'filePath': filePath},
+      where: 'id = ?',
+      whereArgs: [clientId],
+    );
+  }
+
+  void requestPermission() async {
+    PermissionStatus status = await Permission.storage.request();
+    if (status.isGranted) {
+      if (kDebugMode) {
+        print("L'accès au stockage est accordé.");
+      }
+    } else {
+      if (kDebugMode) {
+        print("L'accès au stockage a été refusé.");
+      }
+    }
+  }
+
+  void _openDocument(String filePath) async {
+    if (filePath.endsWith(".pdf")) {
+      final result = await OpenFile.open(filePath);
+      if (result.type != ResultType.done) {
+        if (kDebugMode) {
+          print("Échec de l'ouverture du fichier : ${result.message}");
+        }
+      } else {
+        if (kDebugMode) {
+          print("Fichier ouvert avec succès.");
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Type de fichier non supporté pour l'ouverture.");
+      }
+    }
+  }
+
+  void _addClient() async {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController surnameController = TextEditingController();
+    final TextEditingController addressController = TextEditingController();
+    final TextEditingController nifController = TextEditingController();
+    final TextEditingController statController = TextEditingController();
+    final TextEditingController contactController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController codeClientController = TextEditingController();
+    bool isPro = false;
+    final generatedCode = await _generateClientCode();
+    codeClientController.text = generatedCode;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final TextEditingController nameController = TextEditingController();
-        final TextEditingController surnameController = TextEditingController();
-        final TextEditingController addressController = TextEditingController();
-        final TextEditingController nifController = TextEditingController();
-        final TextEditingController statController = TextEditingController();
-        final TextEditingController contactController = TextEditingController();
-        final TextEditingController emailController = TextEditingController();
-        final TextEditingController codeClientController =
-            TextEditingController();
-        bool isPro = false;
-
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
@@ -120,12 +194,18 @@ class _ClientHomeState extends State<ClientHome> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(
-                      controller: codeClientController,
-                      decoration: const InputDecoration(
-                        labelText: "Code client",
-                        border: OutlineInputBorder(),
-                      ),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isPro,
+                          onChanged: (bool? newValue) {
+                            setStateDialog(() {
+                              isPro = newValue ?? false;
+                            });
+                          },
+                        ),
+                        const Text("Client professionnel ?"),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -161,22 +241,6 @@ class _ClientHomeState extends State<ClientHome> {
                     ),
                     const SizedBox(height: 10),
                     TextField(
-                      controller: nifController,
-                      decoration: const InputDecoration(
-                        labelText: "NIF",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: statController,
-                      decoration: const InputDecoration(
-                        labelText: "STAT",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
                       controller: contactController,
                       decoration: const InputDecoration(
                         labelText: "Contact",
@@ -184,19 +248,24 @@ class _ClientHomeState extends State<ClientHome> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: isPro,
-                          onChanged: (bool? newValue) {
-                            setStateDialog(() {
-                              isPro = newValue ?? false;
-                            });
-                          },
+                    if (isPro) ...[
+                      TextField(
+                        controller: nifController,
+                        decoration: const InputDecoration(
+                          labelText: "NIF",
+                          border: OutlineInputBorder(),
                         ),
-                        const Text("Client professionnel?"),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: statController,
+                        decoration: const InputDecoration(
+                          labelText: "STAT",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ],
                 ),
               ),
@@ -235,13 +304,15 @@ class _ClientHomeState extends State<ClientHome> {
                       'clientName': nameController.text,
                       'clientSurname': surnameController.text,
                       'clientAdress': addressController.text,
-                      'nif': nifController.text,
-                      'stat': statController.text,
+                      'nif': isPro ? nifController.text : "",
+                      'stat': isPro ? statController.text : "",
                       'contact': contactController.text,
                       'mailAdress': emailController.text,
                       'pro': isPro ? 1 : 0,
                       'codeClient': codeClientController.text,
+                      'filePath': selectedFilePath,
                     });
+
                     setState(() {
                       _clientFuture = getClient();
                     });
@@ -271,6 +342,15 @@ class _ClientHomeState extends State<ClientHome> {
             return const Center(child: Text("Aucun client trouvé"));
           } else {
             final clients = snapshot.data!;
+            if (kDebugMode) {
+              print("Liste des clients :");
+            }
+            for (var client in clients) {
+              if (kDebugMode) {
+                print(
+                    "${client.clientName} ${client.clientSurname} - ${client.mailAdress} - ${client.filePath}");
+              }
+            }
             return ListView.builder(
               itemCount: clients.length,
               itemBuilder: (context, index) {
@@ -293,9 +373,25 @@ class _ClientHomeState extends State<ClientHome> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        client.pro
+                        /*client.pro
                             ? const Icon(Icons.business, color: Colors.blue)
-                            : const Icon(Icons.person, color: Colors.grey),
+                            : const Icon(Icons.person, color: Colors.grey),*/
+                        if (client.filePath != null &&
+                            client.filePath!.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.visibility,
+                                color: Colors.green),
+                            onPressed: () {
+                              if (client.filePath != null &&
+                                  client.filePath!.isNotEmpty) {
+                                _openDocument(client.filePath!);
+                              } else {
+                                if (kDebugMode) {
+                                  print("Aucun fichier trouvé pour ce client.");
+                                }
+                              }
+                            },
+                          ),
                         IconButton(
                           icon: const Icon(Icons.edit,
                               color: Color.fromARGB(255, 248, 134, 248)),
@@ -315,7 +411,29 @@ class _ClientHomeState extends State<ClientHome> {
                                 }
                               });
                             } catch (e) {
-                              print("Erreur de navigation: $e");
+                              if (kDebugMode) {
+                                print("Erreur de navigation: $e");
+                              }
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.upload_file,
+                              color: Colors.green),
+                          onPressed: () async {
+                            FilePickerResult? result =
+                                await FilePicker.platform.pickFiles();
+
+                            if (result != null) {
+                              String filePath = result.files.single.path!;
+                              updateClientFilePath(client.id!, filePath);
+                              if (kDebugMode) {
+                                print("Fichier sélectionné : $filePath");
+                              }
+                            } else {
+                              if (kDebugMode) {
+                                print("Aucun fichier sélectionné.");
+                              }
                             }
                           },
                         ),

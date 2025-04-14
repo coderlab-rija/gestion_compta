@@ -1,10 +1,11 @@
-import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/produits.dart';
 import 'package:my_apk/database/unite.dart';
 import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/function/sqlite.dart';
+import 'package:my_apk/function/utility.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
@@ -28,8 +29,10 @@ class Boncommandeneutre extends StatefulWidget {
 class _BoncommandeState extends State<Boncommandeneutre> {
   late Future<List<Unite>> _unityFuture;
   late Future<List<Supplier>> _fournisseurFuture;
-  late Future<List<Category>> _categoryFuture;
+  late Future<List<Categorie>> _categoryFuture;
   late Future<List<Product>> _produitFuture;
+  final dbHelper = DataBaseHelper();
+  final utility = Utility();
   List<Map<String, dynamic>> selectedProducts = [];
 
   int? selectedCategoryId;
@@ -46,114 +49,20 @@ class _BoncommandeState extends State<Boncommandeneutre> {
   @override
   void initState() {
     super.initState();
-    _unityFuture = getUnity();
-    _fournisseurFuture = getFournisseurs();
-    _categoryFuture = getCategory();
-    _produitFuture = getProduct();
+    _unityFuture = dbHelper.getUnity();
+    _fournisseurFuture = dbHelper.getFournisseurs();
+    _categoryFuture = dbHelper.getCategory();
+    _produitFuture = dbHelper.getProduct();
     selectedPaymentType = 'Espèce';
     dateCommandeController.text = DateTime.now().toString().substring(0, 10);
-  }
-
-  String generateReference(int fournisseurId) {
-    String dateCommande =
-        DateTime.now().toIso8601String().substring(0, 10).replaceAll("-", "");
-    String randomCode = _generateRandomString(5);
-    return 'Achat/Fournisseur-$fournisseurId-$dateCommande-$randomCode';
-  }
-
-  String _generateRandomString(int length) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    Random rand = Random();
-    return List.generate(length, (index) => chars[rand.nextInt(chars.length)])
-        .join();
-  }
-
-  Future<List<Category>> getCategory() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> categoriesMaps =
-        await db.query('category');
-    return categoriesMaps.map((categoryMap) {
-      return Category(
-        id: categoryMap['id'] as int,
-        name: categoryMap['name'] as String,
-        description: categoryMap['description'] as String,
-      );
-    }).toList();
-  }
-
-  Future<List<Product>> getProduct() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> produitMaps = await db.query('product');
-    print('TTTTTTTTTTTTESTTTTTTTTTTT:  $produitMaps');
-    return produitMaps.map((produitMap) {
-      return Product(
-        id: produitMap['id'] as int,
-        name: produitMap['name'] as String,
-        description: produitMap['description'] as String,
-        categoryId: produitMap['categoryId'] as int,
-        unityId: produitMap['unityId'] as int,
-      );
-    }).toList();
-  }
-
-  Future<List<Product>> getFilteredProducts(int? categoryId) async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> produitMaps = await db.query(
-      'product',
-      where: 'categoryId = ?',
-      whereArgs: [categoryId],
-    );
-    return produitMaps.map((produitMap) {
-      return Product(
-        id: produitMap['id'] as int,
-        name: produitMap['name'] as String,
-        description: produitMap['description'] as String,
-        categoryId: produitMap['categoryId'] as int,
-        unityId: produitMap['unityId'] as int,
-      );
-    }).toList();
   }
 
   void _onCategoryChanged(int? newCategoryId) {
     setState(() {
       selectedCategoryId = newCategoryId;
-      _produitFuture = getFilteredProducts(newCategoryId);
+      _produitFuture = utility.getFilteredProducts(newCategoryId);
       selectedProduitId = null; // Réinitialiser le produit sélectionné
     });
-  }
-
-  Future<List<Unite>> getUnity() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> clientMaps = await db.query('unity');
-    return clientMaps.map((clientMaps) {
-      return Unite(
-        id: clientMaps['id'] as int,
-        name: clientMaps['name'] as String,
-        unite: clientMaps['unite'] as String,
-      );
-    }).toList();
-  }
-
-  Future<List<Supplier>> getFournisseurs() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> fournisseurMaps =
-        await db.query('fournisseur');
-    return fournisseurMaps.map((fournisseurMap) {
-      return Supplier(
-        id: fournisseurMap['id'] as int,
-        fournisseurName: fournisseurMap['fournisseurName'] as String,
-        fournisseurAdress: fournisseurMap['fournisseurAdress'] as String,
-        nif: fournisseurMap['nif'] as String,
-        stat: fournisseurMap['stat'] as String,
-        contact: fournisseurMap['contact'] as String,
-        dateCreation: fournisseurMap['dateCreation'] as String,
-      );
-    }).toList();
   }
 
   Future<void> _addBonCommande() async {
@@ -172,7 +81,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
     }
 
     final db = await DataBaseHelper().initDB();
-    String reference = generateReference(selectedFournisseurId!);
+    String reference = utility.generateReference(selectedFournisseurId!);
 
     for (var produit in selectedProducts) {
       final produitAvecFournisseur = {
@@ -285,7 +194,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
               decoration: const InputDecoration(labelText: "Date de commande"),
               readOnly: true,
             ),
-            FutureBuilder<List<Category>>(
+            FutureBuilder<List<Categorie>>(
               future: _categoryFuture,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const CircularProgressIndicator();
@@ -427,7 +336,9 @@ class _BoncommandeState extends State<Boncommandeneutre> {
               itemCount: selectedProducts.length,
               itemBuilder: (context, index) {
                 final produit = selectedProducts[index];
-                print(produit);
+                if (kDebugMode) {
+                  print(produit);
+                }
                 return Card(
                   elevation: 4,
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -458,7 +369,6 @@ class _BoncommandeState extends State<Boncommandeneutre> {
             ),
             ElevatedButton(
               onPressed: _addBonCommande,
-              child: const Text("Valider la Commande"),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                     vertical: 14.0, horizontal: 30.0),
@@ -466,6 +376,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
                   borderRadius: BorderRadius.circular(12.0),
                 ),
               ),
+              child: const Text("Valider la Commande"),
             ),
           ],
         ),

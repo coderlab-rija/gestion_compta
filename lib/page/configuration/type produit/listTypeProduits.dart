@@ -22,7 +22,7 @@ class ListTypeproduits extends StatefulWidget {
 }
 
 class _ListTypeProduitState extends State<ListTypeproduits> {
-  late Future<List<Category>> _categoryFuture;
+  late Future<List<Categorie>> _categoryFuture;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -33,7 +33,7 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
     _categoryFuture = fetchCategory();
   }
 
-  Future<List<Category>> fetchCategory() async {
+  Future<List<Categorie>> fetchCategory() async {
     final dbHelper = DataBaseHelper();
     return await dbHelper.getCategory();
   }
@@ -125,7 +125,7 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
 
                 if (name.isNotEmpty && description.isNotEmpty) {
                   final dbHelper = DataBaseHelper();
-                  Category newCategory = Category(
+                  Categorie newCategory = Categorie(
                     name: name,
                     description: description,
                   );
@@ -152,7 +152,7 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
     );
   }
 
-  void _editTypeProduct(Category category) {
+  void _editTypeProduct(Categorie category) {
     _nameController.text = category.name;
     _descriptionController.text = category.description;
 
@@ -188,7 +188,7 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
 
                 if (name.isNotEmpty && description.isNotEmpty) {
                   final dbHelper = DataBaseHelper();
-                  Category updatedCategory = Category(
+                  Categorie updatedCategory = Categorie(
                     id: category.id,
                     name: name,
                     description: description,
@@ -223,7 +223,7 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
         title: const Text("Listes des types de produits"),
       ),
       drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Category>>(
+      body: FutureBuilder<List<Categorie>>(
         future: _categoryFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -316,7 +316,7 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
     );
   }
 
-  void _deleteCategorie(Category category) {
+  void _deleteCategorie(Categorie category) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

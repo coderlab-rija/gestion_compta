@@ -225,9 +225,6 @@ class _ListBoncommandeState extends State<Bonreceptionproduct> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Text(
-                                "Statuts: ${produit.status}",
-                              ),
                               const SizedBox(height: 8),
                             ],
                           );

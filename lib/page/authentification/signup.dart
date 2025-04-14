@@ -3,6 +3,7 @@ import 'package:my_apk/page/home/home.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/database/users.dart';
 import 'package:my_apk/function/sqlite.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -201,23 +202,43 @@ class _SignUpState extends State<SignUp> {
                           final db = DataBaseHelper();
                           db
                               .signUp(Utilisateur(
-                                  username: username.text,
-                                  lastname: lastname.text,
-                                  email: email.text,
-                                  password: password.text))
-                              .then((value) {
+                            username: username.text,
+                            lastname: lastname.text,
+                            email: email.text,
+                            password: password.text,
+                          ))
+                              .then((value) async {
                             if (value > 0) {
-                              // If the insertion is successful
-                              Navigator.push(
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              prefs.setInt('userId', value);
+
+                              final Utilisateur? utilisateur =
+                                  await db.getUtilisateurById(value);
+
+                              if (utilisateur != null) {
+                                prefs.setString(
+                                    'userName', utilisateur.username);
+                                prefs.setString('userEmail', utilisateur.email);
+                                prefs.setString(
+                                    'userPassword', utilisateur.password);
+                              }
+
+                              Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => HomePage()),
+                                    builder: (context) => const HomePage()),
                               );
-                            } else {
-                              // If the insertion fails
+
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('Registration failed')),
+                                    content: Text('Inscription réussie 🎉')),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Échec de l\'inscription 😕')),
                               );
                             }
                           });

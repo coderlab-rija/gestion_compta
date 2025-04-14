@@ -1,13 +1,22 @@
 import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:my_apk/database/achatFournisseur.dart';
 import 'package:my_apk/function/sqlite.dart';
+import 'package:my_apk/page/authentification/login.dart';
+import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
+import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/pdf/PDFBonCommande.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:my_apk/page/pdf/PDFBonReception.dart';
+import 'package:my_apk/page/client/ClientHome.dart';
+import 'package:my_apk/page/dashboard/dashboard.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
+import 'package:my_apk/page/fournisseur/supplierHome.dart';
+import 'package:my_apk/page/configuration/configurationHome.dart';
+import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/commande/bonCommandeNeutre.dart';
+import 'package:my_apk/page/profils/profil_home.dart';
 
 class ListBoncommande extends StatefulWidget {
   const ListBoncommande({super.key});
@@ -146,6 +155,60 @@ class _ListBoncommandeState extends State<ListBoncommande> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  void _onItemSelected(int index) {
+    Navigator.pop(context);
+    switch (index) {
+      case 0:
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => const Profil()));
+        break;
+      case 1:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Listproduct()));
+        break;
+      case 2:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Inventaire()));
+        break;
+      case 3:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Supplierhome()));
+        break;
+      case 4:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Boncommandeneutre()));
+        break;
+      case 5:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ListBoncommande()));
+        break;
+      case 6:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ClientHome()));
+        break;
+      case 7:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Facturationhome()));
+        break;
+      case 8:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Dashboard()));
+        break;
+      case 9:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Configurationhome()));
+        break;
+      case 10:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const Inventaire()));
+        break;
+      case 11:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
+        break;
+    }
   }
 
   @override

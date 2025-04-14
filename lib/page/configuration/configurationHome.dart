@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/configuration/paiement/paiement.dart';
 import 'package:my_apk/page/configuration/type%20produit/listTypeProduits.dart';
+import 'package:my_apk/page/configuration/utilisateurs/listUtilisateurs.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
 import 'package:my_apk/page/gestion%20de%20stock/achat%20fournisseur/facturation/facturationHome.dart';
 import 'package:my_apk/page/fournisseur/supplierHome.dart';
@@ -13,15 +15,36 @@ import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/listProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Configurationhome extends StatefulWidget {
   const Configurationhome({super.key});
 
   @override
-  State<Configurationhome> createState() => _StockHometState();
+  State<Configurationhome> createState() => _ConfigurationHomeState();
 }
 
-class _StockHometState extends State<Configurationhome> {
+class _ConfigurationHomeState extends State<Configurationhome> {
+  String? userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    getUserRole();
+  }
+
+  Future<void> getUserRole() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    final prefs = await SharedPreferences.getInstance();
+    final storedRole = prefs.getString('role');
+    setState(() {
+      userRole = storedRole ?? '';
+    });
+    if (kDebugMode) {
+      print("Le rôle récupéré est : $storedRole");
+    }
+  }
+
   void _onItemSelected(int index) {
     Navigator.pop(context);
     switch (index) {
@@ -79,68 +102,55 @@ class _StockHometState extends State<Configurationhome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(onItemSelected: _onItemSelected),
+      drawer: Sidebar(
+        onItemSelected: _onItemSelected,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 0.0),
-            ),
             const SizedBox(height: 20),
             Expanded(
               child: GridView.count(
-                crossAxisCount: 2, // Number of columns
+                crossAxisCount: 2,
                 crossAxisSpacing: 10.0,
                 mainAxisSpacing: 10.0,
                 children: [
                   _buildGridItem(
                     title: 'Unité de gestion',
                     icon: Icons.balance,
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const Listunity()),
+                    ),
+                  ),
+                  if (userRole == "Admin")
+                    _buildGridItem(
+                      title: 'Gestion des utilisateurs',
+                      icon: Icons.people_sharp,
+                      onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Listunity(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildGridItem(
-                    title: 'Gestions des utilisateurs',
-                    icon: Icons.people_sharp,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const Listproduct(),
-                        ),
-                      );
-                    },
-                  ),
+                            builder: (context) => const Listutilisateurs()),
+                      ),
+                    ),
                   _buildGridItem(
                     title: 'Type de produits',
                     icon: Icons.category_outlined,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ListTypeproduits(),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ListTypeproduits()),
+                    ),
                   ),
                   _buildGridItem(
                     title: 'Mode de paiement',
                     icon: Icons.price_change,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const Paiement(),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Paiement()),
+                    ),
                   ),
                 ],
               ),

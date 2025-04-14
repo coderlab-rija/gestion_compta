@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:path/path.dart';
 import 'package:my_apk/database/achatFournisseur.dart';
 import 'package:my_apk/database/client.dart';
 import 'package:my_apk/database/fournisseur.dart';
@@ -11,19 +12,19 @@ import 'package:my_apk/database/unite.dart';
 import 'package:my_apk/database/users.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'rija-base35.db');
+    final path = join(databasePath, 'rija-base43.db');
     print('Database path: $path');
+
     return openDatabase(
       path,
       version: 1,
       onCreate: (db, version) async {
         await db.execute(
-          'CREATE TABLE utilisateur (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, lastname TEXT, email TEXT UNIQUE, password TEXT)',
+          'CREATE TABLE utilisateur (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, lastname TEXT, email TEXT UNIQUE, password TEXT, role TEXT)',
         );
 
         await db.execute(
@@ -60,7 +61,8 @@ class DataBaseHelper {
             'stat TEXT, '
             'contact TEXT, '
             'pro INTEGER DEFAULT 0, ' // 0 = false, 1 = true
-            'codeClient TEXT NOT NULL UNIQUE)');
+            'codeClient TEXT NOT NULL UNIQUE, '
+            'filePath TEXT)');
 
         await db.execute('''
           CREATE TABLE historique_categorie (
@@ -119,17 +121,27 @@ class DataBaseHelper {
     }
   }
 
-  Future<int> signUp(Utilisateur utilisateur) async {
-    try {
-      final Database db = await initDB();
-      return await db.insert(
-        'utilisateur',
-        utilisateur.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    } catch (e) {
-      return -1;
-    }
+  Future<int> signUp(Utilisateur newUser) async {
+    final db = await initDB();
+
+    final List<Map<String, dynamic>> admins = await db.query(
+      'utilisateur',
+      where: 'role = ?',
+      whereArgs: ['Admin'],
+    );
+
+    String assignedRole = admins.isEmpty ? 'Admin' : 'Utilisateur';
+    return await db.insert(
+      'utilisateur',
+      {
+        'username': newUser.username,
+        'lastname': newUser.lastname,
+        'email': newUser.email,
+        'password': newUser.password,
+        'role': assignedRole,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<Utilisateur>> getUsers() async {
@@ -143,6 +155,7 @@ class DataBaseHelper {
         lastname: userMap['lastname'] as String,
         email: userMap['email'] as String,
         password: userMap['password'] as String,
+        role: userMap['role'] as String,
       );
     }).toList();
   }
@@ -158,10 +171,11 @@ class DataBaseHelper {
     if (userMaps.isNotEmpty) {
       return Utilisateur(
         id: userMaps[0]['id'] as int,
-        username: userMaps[0]['username'] as String,
-        lastname: userMaps[0]['lastname'] as String,
-        email: userMaps[0]['email'] as String,
-        password: userMaps[0]['password'] as String,
+        username: (userMaps[0]['username'] as String?) ?? '',
+        lastname: (userMaps[0]['lastname'] as String?) ?? '',
+        email: (userMaps[0]['email'] as String?) ?? '',
+        password: (userMaps[0]['password'] as String?) ?? '',
+        role: (userMaps[0]['role'] as String?) ?? '',
       );
     }
 
@@ -180,13 +194,13 @@ class DataBaseHelper {
 
   //////////////////////////////////category///////////////////////////////////////////
 
-  Future<List<Category>> getCategory() async {
+  Future<List<Categorie>> getCategory() async {
     final db = await initDB();
     final List<Map<String, Object?>> categoriesMaps =
         await db.query('category');
 
     return categoriesMaps.map((categoryMap) {
-      return Category(
+      return Categorie(
         id: categoryMap['id'] as int,
         name: categoryMap['name'] as String,
         description: categoryMap['description'] as String,
@@ -194,7 +208,7 @@ class DataBaseHelper {
     }).toList();
   }
 
-  Future<int> addCategory(Category category) async {
+  Future<int> addCategory(Categorie category) async {
     try {
       final Database db = await initDB();
       int categoryId = await db.insert(
@@ -250,7 +264,7 @@ class DataBaseHelper {
     );
   }
 
-  Future<void> updateCategory(Category category) async {
+  Future<void> updateCategory(Categorie category) async {
     final db = await initDB();
 
     await db.update(
@@ -298,6 +312,41 @@ class DataBaseHelper {
   }
 
   //////////////////////////////////product///////////////////////////////////////////
+
+  Future<List<Product>> getProduct() async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    final List<Map<String, Object?>> produitMaps = await db.query('product');
+    return produitMaps.map((produitMap) {
+      return Product(
+        id: produitMap['id'] as int,
+        name: produitMap['name'] as String,
+        description: produitMap['description'] as String,
+        categoryId: produitMap['categoryId'] as int,
+        unityId: produitMap['unityId'] as int,
+      );
+    }).toList();
+  }
+
+  Future<List<Product>> getProductUnity() async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+
+    final List<Map<String, Object?>> produitMaps = await db.rawQuery('''
+    SELECT product.id, product.name, product.description, product.unityId, unity.name AS unityName 
+    FROM product
+    JOIN unity ON product.unityId = unity.id
+  ''');
+    return produitMaps.map((produitMap) {
+      return Product(
+        id: produitMap['id'] as int,
+        name: produitMap['name'] as String,
+        description: produitMap['description'] as String,
+        unityId: produitMap['unityId'] as int,
+        unityName: produitMap['unityName'] as String,
+      );
+    }).toList();
+  }
 
   Future<int> addProduct(Product product) async {
     try {
@@ -403,7 +452,7 @@ class DataBaseHelper {
     try {
       final Database db = await initDB();
       return await db.delete(
-        'produits',
+        'product',
         where: 'id = ?',
         whereArgs: [id],
       );
@@ -433,6 +482,24 @@ class DataBaseHelper {
         stat: fournisseurMaps['stat'] as String,
         contact: fournisseurMaps['contact'] as String,
         dateCreation: fournisseurMaps['dateCreation'] as String,
+      );
+    }).toList();
+  }
+
+  Future<List<Supplier>> getFournisseurs() async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    final List<Map<String, Object?>> fournisseurMaps =
+        await db.query('fournisseur');
+    return fournisseurMaps.map((fournisseurMap) {
+      return Supplier(
+        id: fournisseurMap['id'] as int,
+        fournisseurName: fournisseurMap['fournisseurName'] as String,
+        fournisseurAdress: fournisseurMap['fournisseurAdress'] as String,
+        nif: fournisseurMap['nif'] as String,
+        stat: fournisseurMap['stat'] as String,
+        contact: fournisseurMap['contact'] as String,
+        dateCreation: fournisseurMap['dateCreation'] as String,
       );
     }).toList();
   }
@@ -479,18 +546,19 @@ class DataBaseHelper {
     final db = await initDB();
     final List<Map<String, Object?>> clientMaps = await db.query('client');
 
-    return clientMaps.map((clientMaps) {
+    return clientMaps.map((clientMap) {
       return Client(
-        id: clientMaps['id'] as int,
-        clientName: clientMaps['clientName'] as String,
-        clientSurname: clientMaps['clientSurname'] as String,
-        clientAdress: clientMaps['clientAdress'] as String,
-        mailAdress: clientMaps['mailAdress'] as String,
-        nif: clientMaps['nif'] as String,
-        stat: clientMaps['stat'] as String,
-        contact: clientMaps['contact'] as String,
-        pro: clientMaps['pro'] as bool,
-        codeClient: clientMaps['codeClient'] as String,
+        id: clientMap['id'] as int?,
+        clientName: clientMap['clientName'] as String,
+        clientSurname: clientMap['clientSurname'] as String,
+        clientAdress: clientMap['clientAdress'] as String,
+        mailAdress: clientMap['mailAdress'] as String,
+        nif: clientMap['nif'] as String,
+        stat: clientMap['stat'] as String,
+        contact: clientMap['contact'] as String,
+        pro: (clientMap['pro'] as int) == 1, // ✅ Convertir INT en bool
+        codeClient: clientMap['codeClient'] as String,
+        filePath: clientMap['filePath'] as String?,
       );
     }).toList();
   }
@@ -503,6 +571,30 @@ class DataBaseHelper {
       where: 'id = ?',
       whereArgs: [client.id],
     );
+  }
+
+  Future<String> generateClientCode() async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    final result =
+        await db.rawQuery('SELECT * FROM client ORDER BY id DESC LIMIT 1');
+
+    String lastCode = '';
+
+    if (result.isNotEmpty) {
+      lastCode = result.first['codeClient'] as String? ?? '';
+    }
+
+    String numericPart = '0';
+    if (lastCode.length >= 3) {
+      numericPart = lastCode.substring(3);
+    }
+
+    int newNumericPart = int.tryParse(numericPart) ?? 0;
+    newNumericPart++;
+
+    String newCode = 'CL_${newNumericPart.toString().padLeft(3, '0')}';
+    return newCode;
   }
 
   //////////////////////////////////unity///////////////////////////////////////////

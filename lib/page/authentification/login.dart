@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:my_apk/page/home/home.dart';
 import 'package:my_apk/page/authentification/signup.dart';
@@ -31,16 +32,44 @@ class _LoginScreenState extends State<LoginScreen> {
     ));
 
     if (userId != null) {
-      print('User login with id: $userId');
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('userId', userId);
+      final users = await db.getUtilisateurById(userId);
+      final userRole = users?.role;
+      final userPassword = users?.password;
+      if (userRole != null) {
+        await prefs.setString('role', userRole);
+        if (kDebugMode) {
+          print('User Role Login (Stored): $userRole');
+        }
+      } else {
+        if (kDebugMode) {
+          print('User Role is NULL');
+        }
+      }
 
-      await getUtilisateurById(userId);
+      if (userPassword != null) {
+        await prefs.setString('userPassword', userPassword);
+        if (kDebugMode) {
+          print('User Password Stored: $userPassword');
+        }
+      } else {
+        if (kDebugMode) {
+          print('User Password is NULL');
+        }
+      }
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+      if (userRole == 'admin') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
     } else {
       setState(() {
         isLoginTrue = true;
@@ -56,8 +85,11 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('username', utilisateur.username);
       await prefs.setString('lastname', utilisateur.lastname);
       await prefs.setString('email', utilisateur.email);
+      await prefs.setString('role', utilisateur.role ?? '');
     } else {
-      print("Error: User not found");
+      if (kDebugMode) {
+        print("Error: User not found");
+      }
     }
   }
 
@@ -147,7 +179,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextButton(
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
-                          print("Validation successful");
+                          if (kDebugMode) {
+                            print("Validation successful");
+                          }
                           await login();
                         }
                       },

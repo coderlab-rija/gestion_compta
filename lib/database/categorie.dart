@@ -1,15 +1,15 @@
-class Category {
+class Categorie {
   final int? id;
   final String name;
   final String description;
 
-  Category({
+  Categorie({
     this.id,
     required this.name,
     required this.description,
   });
 
-  factory Category.fromMap(Map<String, dynamic> json) => Category(
+  factory Categorie.fromMap(Map<String, dynamic> json) => Categorie(
         id: json["id"],
         name: json["name"],
         description: json["description"],

@@ -7,12 +7,14 @@ class SettingProfils extends StatefulWidget {
   final String initialUsername;
   final String initialLastname;
   final String initialEmail;
+  final String initialPassword;
 
   const SettingProfils({
     Key? key,
     required this.initialUsername,
     required this.initialLastname,
     required this.initialEmail,
+    required this.initialPassword,
   }) : super(key: key);
 
   @override
@@ -46,7 +48,7 @@ class _SettingProfilsState extends State<SettingProfils> {
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    userId = prefs.getInt('userId');
+    final userId = prefs.getInt('userId');
 
     if (userId != null) {
       Utilisateur? utilisateur = await dbHelper.getUtilisateurById(userId!);
@@ -65,6 +67,7 @@ class _SettingProfilsState extends State<SettingProfils> {
       final prefs = await SharedPreferences.getInstance();
       int? userId = prefs.getInt('userId');
       String? userPassword = prefs.getString('userPassword');
+      String? userRole = prefs.getString('role');
 
       if (userId != null && userPassword != null) {
         Utilisateur utilisateur = Utilisateur(
@@ -73,6 +76,7 @@ class _SettingProfilsState extends State<SettingProfils> {
           lastname: lastname.text,
           email: email.text,
           password: userPassword,
+          role: userRole,
         );
 
         await dbHelper.updateProfil(utilisateur);

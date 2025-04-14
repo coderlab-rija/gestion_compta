@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_apk/database/categorie.dart';
+import 'package:my_apk/database/users.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
@@ -22,20 +22,17 @@ class Listutilisateurs extends StatefulWidget {
 }
 
 class _ListTypeProduitState extends State<Listutilisateurs> {
-  late Future<List<Category>> _categoryFuture;
-
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  late Future<List<Utilisateur>> _usersFuture;
 
   @override
   void initState() {
     super.initState();
-    _categoryFuture = fetchCategory();
+    _usersFuture = fetchUsers();
   }
 
-  Future<List<Category>> fetchCategory() async {
+  Future<List<Utilisateur>> fetchUsers() async {
     final dbHelper = DataBaseHelper();
-    return await dbHelper.getCategory();
+    return await dbHelper.getUsers();
   }
 
   void _onItemSelected(int index) {
@@ -92,152 +89,28 @@ class _ListTypeProduitState extends State<Listutilisateurs> {
     }
   }
 
-  void _addProduit() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Ajouter un type de produit'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nom'),
-              ),
-              TextField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Annuler'),
-            ),
-            TextButton(
-              onPressed: () async {
-                String name = _nameController.text;
-                String description = _descriptionController.text;
-
-                if (name.isNotEmpty && description.isNotEmpty) {
-                  final dbHelper = DataBaseHelper();
-                  Category newCategory = Category(
-                    name: name,
-                    description: description,
-                  );
-                  await dbHelper.addCategory(newCategory);
-                  setState(() {
-                    _categoryFuture = fetchCategory();
-                  });
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Type de produit ajouté')),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Veuillez remplir tous les champs')),
-                  );
-                }
-              },
-              child: const Text('Ajouter'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _editTypeProduct(Category category) {
-    _nameController.text = category.name;
-    _descriptionController.text = category.description;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Modifier un type de produit'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nom'),
-              ),
-              TextField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Annuler'),
-            ),
-            TextButton(
-              onPressed: () async {
-                String name = _nameController.text;
-                String description = _descriptionController.text;
-
-                if (name.isNotEmpty && description.isNotEmpty) {
-                  final dbHelper = DataBaseHelper();
-                  Category updatedCategory = Category(
-                    id: category.id,
-                    name: name,
-                    description: description,
-                  );
-                  await dbHelper.updateCategory(updatedCategory);
-                  setState(() {
-                    _categoryFuture = fetchCategory();
-                  });
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Type de produit mis à jour')),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Veuillez remplir tous les champs')),
-                  );
-                }
-              },
-              child: const Text('Mettre à jour'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Listes des types de produits"),
+        title: const Text("Liste des utilisateurs"),
       ),
-      drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Category>>(
-        future: _categoryFuture,
+      drawer: Sidebar(onItemSelected: (index) {}),
+      body: FutureBuilder<List<Utilisateur>>(
+        future: _usersFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
+            return Center(child: Text("Erreur : ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Aucune catégorie trouvée"));
+            return const Center(child: Text("Aucun utilisateur trouvé"));
           } else {
-            final typeProduct = snapshot.data!;
+            final users = snapshot.data!;
             return ListView.builder(
-              itemCount: typeProduct.length,
+              itemCount: users.length,
               itemBuilder: (context, index) {
-                final response = typeProduct[index];
+                final user = users[index];
                 return Card(
                   margin:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -245,59 +118,23 @@ class _ListTypeProduitState extends State<Listutilisateurs> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
+                  child: ListTile(
+                    leading: const Icon(Icons.person, color: Colors.blueAccent),
+                    title: Text(
+                      "${user.username} ${user.lastname}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              response.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.orange),
-                                  onPressed: () {
-                                    _editTypeProduct(response);
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    _deleteCategorie(response);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(Icons.description, color: Colors.grey[700]),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                response.description,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[800],
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                              ),
-                            ),
-                          ],
+                        Text(user.email),
+                        Text(
+                          "Rôle : ${user.role}",
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w500, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -308,51 +145,6 @@ class _ListTypeProduitState extends State<Listutilisateurs> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addProduit,
-        child: const Icon(Icons.add),
-        tooltip: 'Ajouter un type de produit',
-      ),
-    );
-  }
-
-  void _deleteCategorie(Category category) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Confirm Deletion"),
-          content: Text("Are you sure you want to delete ${category.name}?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () async {
-                final dbHelper = DataBaseHelper();
-                final result = await dbHelper.deleteCategory(category.id!);
-                if (result != -1) {
-                  setState(() {
-                    _categoryFuture = fetchCategory();
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Category deleted successfully'),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Error while deleting')),
-                  );
-                }
-                Navigator.of(context).pop();
-              },
-              child: const Text("Delete"),
-            ),
-          ],
-        );
-      },
     );
   }
 }

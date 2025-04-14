@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 class Sidebar extends StatelessWidget {
   final Function(int) onItemSelected;
 
-  const Sidebar({Key? key, required this.onItemSelected}) : super(key: key);
+  const Sidebar({Key? key, required this.onItemSelected, String? userRole})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {

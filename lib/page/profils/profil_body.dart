@@ -23,6 +23,7 @@ class _BodyState extends State<Body> {
   String userName = '';
   String lastname = '';
   String userEmail = '';
+  String? userPassword = '';
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _BodyState extends State<Body> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('userId');
+    final userPasswordSaved = prefs.getString('userPassword');
 
     if (userId != null) {
       DataBaseHelper dbHelper = DataBaseHelper();
@@ -43,6 +45,7 @@ class _BodyState extends State<Body> {
           userName = utilisateur.username;
           lastname = utilisateur.lastname;
           userEmail = utilisateur.email;
+          userPassword = userPasswordSaved;
         });
       }
     }
@@ -129,6 +132,7 @@ class _BodyState extends State<Body> {
                         initialUsername: userName,
                         initialLastname: lastname,
                         initialEmail: userEmail,
+                        initialPassword: userPassword ?? '',
                       ),
                     ),
                   );

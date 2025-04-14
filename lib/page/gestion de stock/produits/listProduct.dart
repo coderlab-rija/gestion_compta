@@ -27,14 +27,15 @@ class Listproduct extends StatefulWidget {
 
 class _ListproduitState extends State<Listproduct> {
   late Future<List<Product>> _productFuture;
-  late Future<List<Category>> _categoryFuture;
+  late Future<List<Categorie>> _categoryFuture;
+  final dbHelper = DataBaseHelper();
   int? selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
     _productFuture = getProduct();
-    _categoryFuture = getCategory();
+    _categoryFuture = dbHelper.getCategory();
   }
 
   Future<void> setActionProductInSharedPreferences(String action) async {
@@ -72,34 +73,6 @@ class _ListproduitState extends State<Listproduct> {
         unityId: productMap['unityId'] as int,
         categoryId: productMap['categoryId'] as int,
         categoryName: productMap['categoryName'] as String,
-      );
-    }).toList();
-  }
-
-  Future<List<Category>> getCategory() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> categoriesMaps =
-        await db.query('category');
-    return categoriesMaps.map((categoryMap) {
-      return Category(
-        id: categoryMap['id'] as int,
-        name: categoryMap['name'] as String,
-        description: categoryMap['description'] as String,
-      );
-    }).toList();
-  }
-
-  Future<List<Unite>> getUnity() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> clientMaps = await db.query('unity');
-
-    return clientMaps.map((clientMaps) {
-      return Unite(
-        id: clientMaps['id'] as int,
-        name: clientMaps['name'] as String,
-        unite: clientMaps['unite'] as String,
       );
     }).toList();
   }
@@ -180,7 +153,7 @@ class _ListproduitState extends State<Listproduct> {
                 onChanged: (value) => description = value,
                 decoration: const InputDecoration(labelText: 'Description'),
               ),
-              FutureBuilder<List<Category>>(
+              FutureBuilder<List<Categorie>>(
                 future: _categoryFuture,
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
@@ -205,7 +178,7 @@ class _ListproduitState extends State<Listproduct> {
                 },
               ),
               FutureBuilder<List<Unite>>(
-                future: getUnity(),
+                future: dbHelper.getUnity(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return const CircularProgressIndicator();

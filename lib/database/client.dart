@@ -9,6 +9,7 @@ class Client {
   String contact;
   bool pro;
   String codeClient;
+  String? filePath;
 
   Client({
     this.id,
@@ -21,6 +22,7 @@ class Client {
     required this.stat,
     required this.contact,
     required this.pro,
+    this.filePath,
   });
 
   factory Client.fromMap(Map<String, dynamic> json) => Client(
@@ -34,6 +36,7 @@ class Client {
         contact: json["contact"],
         pro: json["pro"],
         codeClient: json["codeClient"],
+        filePath: json["filePath"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -47,5 +50,6 @@ class Client {
         "contact": contact,
         "pro": pro,
         "codeClient": codeClient,
+        "filePath": filePath,
       };
 }
