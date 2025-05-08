@@ -31,92 +31,16 @@ class Listproduct extends StatefulWidget {
 class _ListproduitState extends State<Listproduct> {
   Fonction fonction = Fonction();
   late Future<List<Product>> _productFuture;
-<<<<<<< Updated upstream
-  late Future<List<Category>> _categoryFuture;
-=======
   late Future<List<Categorie>> _categoryFuture;
   late Future<List<Unite>> _unityFuture;
->>>>>>> Stashed changes
   int? selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
-<<<<<<< Updated upstream
-    _productFuture = getProduct();
-    _categoryFuture = getCategory();
-  }
-
-  Future<void> setActionProductInSharedPreferences(String action) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('product_action', action);
-  }
-
-  Future<List<Product>> getProduct() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-
-    final List<Map<String, Object?>> productsMaps;
-    if (selectedCategoryId != null) {
-      productsMaps = await db.rawQuery('''
-      SELECT product.id, product.name, product.description, product.unityId, category.id, category.name as categoryName
-      FROM product
-      JOIN category ON product.categoryId = category.id
-      WHERE product.categoryId = ?
-    ''', [selectedCategoryId]);
-    } else {
-      productsMaps = await db.rawQuery('''
-      SELECT product.id, product.name, product.description, product.unityId, category.id as categoryId, category.name as categoryName , unity.name as unityName
-      FROM product
-      JOIN category ON product.categoryId = category.id
-      JOIN unity ON product.unityId = unity.id
-    ''');
-    }
-
-    return productsMaps.map((productMap) {
-      return Product(
-        id: productMap['id'] as int,
-        name: productMap['name'] as String,
-        description: productMap['description'] as String,
-        unityName: productMap['unityName'] as String,
-        unityId: productMap['unityId'] as int,
-        categoryId: productMap['categoryId'] as int,
-        categoryName: productMap['categoryName'] as String,
-      );
-    }).toList();
-=======
     _productFuture = fonction.getProducts();
     _categoryFuture = fonction.getCategory();
     _unityFuture = fonction.getUnity();
->>>>>>> Stashed changes
-  }
-
-  Future<List<Category>> getCategory() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> categoriesMaps =
-        await db.query('category');
-    return categoriesMaps.map((categoryMap) {
-      return Category(
-        id: categoryMap['id'] as int,
-        name: categoryMap['name'] as String,
-        description: categoryMap['description'] as String,
-      );
-    }).toList();
-  }
-
-  Future<List<Unite>> getUnity() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> clientMaps = await db.query('unity');
-
-    return clientMaps.map((clientMaps) {
-      return Unite(
-        id: clientMaps['id'] as int,
-        name: clientMaps['name'] as String,
-        unite: clientMaps['unite'] as String,
-      );
-    }).toList();
   }
 
   void _onItemSelected(int index) {
@@ -297,90 +221,6 @@ class _ListproduitState extends State<Listproduct> {
                   ],
                 ),
               ),
-<<<<<<< Updated upstream
-              TextField(
-                onChanged: (value) => description = value,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              FutureBuilder<List<Category>>(
-                future: _categoryFuture,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const CircularProgressIndicator();
-                  }
-                  final categories = snapshot.data!;
-                  return DropdownButton<int>(
-                    hint: const Text('Selectioner le categorie'),
-                    value: categoryId,
-                    onChanged: (int? newValue) {
-                      setState(() {
-                        categoryId = newValue;
-                      });
-                    },
-                    items: categories.map((category) {
-                      return DropdownMenuItem<int>(
-                        value: category.id,
-                        child: Text(category.name),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-              FutureBuilder<List<Unite>>(
-                future: getUnity(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const CircularProgressIndicator();
-                  }
-                  final unities = snapshot.data!;
-                  return DropdownButton<int>(
-                    hint: const Text('Select un unité'),
-                    value: unityId,
-                    onChanged: (int? newValue) {
-                      setState(() {
-                        unityId = newValue;
-                      });
-                    },
-                    items: unities.map((unite) {
-                      return DropdownMenuItem<int>(
-                        value: unite.id,
-                        child: Text(unite.name),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (name.isNotEmpty &&
-                    description.isNotEmpty &&
-                    categoryId != null &&
-                    unityId != null) {
-                  final dbHelper = DataBaseHelper();
-                  final db = await dbHelper.initDB();
-                  await db.insert('product', {
-                    'name': name,
-                    'description': description,
-                    'categoryId': categoryId,
-                    'unityId': unityId,
-                  });
-                  setState(() {
-                    _productFuture = getProduct();
-                  });
-                  Navigator.of(context).pop();
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
-=======
               actions: <Widget>[
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -449,7 +289,6 @@ class _ListproduitState extends State<Listproduct> {
               ],
             );
           },
->>>>>>> Stashed changes
         );
       },
     );
