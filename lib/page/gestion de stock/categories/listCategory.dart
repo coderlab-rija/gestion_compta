@@ -25,7 +25,7 @@ class Listcategory extends StatefulWidget {
 }
 
 class _ListcategoryState extends State<Listcategory> {
-  late Future<List<Category>> _categoryFuture;
+  late Future<List<Categorie>> _categoryFuture;
 
   @override
   void initState() {
@@ -38,7 +38,7 @@ class _ListcategoryState extends State<Listcategory> {
     await prefs.setString('category_action', action);
   }
 
-  Future<List<Category>> fetchCategory() async {
+  Future<List<Categorie>> fetchCategory() async {
     final dbHelper = DataBaseHelper();
     return await dbHelper.getCategory();
   }
@@ -127,7 +127,7 @@ class _ListcategoryState extends State<Listcategory> {
         ],
       ),
       drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Category>>(
+      body: FutureBuilder<List<Categorie>>(
         future: _categoryFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -236,7 +236,7 @@ class _ListcategoryState extends State<Listcategory> {
     );
   }
 
-  void _showDetails(BuildContext context, Category category) {
+  void _showDetails(BuildContext context, Categorie category) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -256,7 +256,7 @@ class _ListcategoryState extends State<Listcategory> {
     );
   }
 
-  void _deleteCategorie(Category category) {
+  void _deleteCategorie(Categorie category) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -271,7 +271,8 @@ class _ListcategoryState extends State<Listcategory> {
             TextButton(
               onPressed: () async {
                 final dbHelper = DataBaseHelper();
-                final result = await dbHelper.deleteCategory(category.id!);
+                final result =
+                    await dbHelper.deleteCategory(category.idCategorie!);
                 if (result != -1) {
                   setState(() {
                     _categoryFuture = fetchCategory();

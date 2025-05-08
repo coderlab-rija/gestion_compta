@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_apk/database/client.dart';
-import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/client/editClient.dart';
 
 class ClientHome extends StatefulWidget {
@@ -13,6 +17,7 @@ class ClientHome extends StatefulWidget {
 class _ClientHomeState extends State<ClientHome> {
   late Future<List<Client>> _clientFuture;
   bool? isProFilter;
+  String? selectedFilePath;
 
   @override
   void initState() {
@@ -20,35 +25,55 @@ class _ClientHomeState extends State<ClientHome> {
     _clientFuture = getClient();
   }
 
+  Future<String> _generateClientCode() async {
+    final snapshot =
+        await FirebaseFirestore.instance.collection('clients').get();
+    final count = snapshot.size + 1;
+    final formatted = count.toString().padLeft(3, '0');
+    return 'CL$formatted';
+  }
+
   Future<List<Client>> getClient() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> clientMaps;
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final uid = user?.uid;
 
-    if (isProFilter != null) {
-      clientMaps = await db.query(
-        'client',
-        where: 'pro = ?',
-        whereArgs: [isProFilter == true ? 1 : 0],
+      if (uid == null) {
+        throw Exception("Utilisateur non connecté");
+      }
+
+      final response = await http.get(
+        Uri.parse("http://10.0.2.2:8000/clients/user?uid=$uid"),
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-UID": uid,
+        },
       );
-    } else {
-      clientMaps = await db.query('client');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final List<dynamic> clientsData = responseData['clients'];
+
+        return clientsData.map((client) {
+          return Client(
+            id: client['id'],
+            clientName: client['clientName'],
+            clientSurname: client['clientSurname'],
+            mailAdress: client['mailAdress'],
+            contact: client['contact'],
+            nif: client['nif'],
+            stat: client['stat'],
+            pro: client['pro'] == 1,
+            codeClient: client['codeClient'],
+            clientAdress: client['clientAdress'],
+          );
+        }).toList();
+      } else {
+        throw Exception('Erreur backend : ${response.body}');
+      }
+    } catch (e) {
+      throw Exception("Erreur lors de la récupération des clients: $e");
     }
-
-    return clientMaps.map((clientMap) {
-      return Client(
-        id: clientMap['id'] as int,
-        clientName: clientMap['clientName'] as String,
-        clientSurname: clientMap['clientSurname'] as String,
-        clientAdress: clientMap['clientAdress'] as String,
-        mailAdress: clientMap['mailAdress'] as String,
-        nif: clientMap['nif'] as String,
-        stat: clientMap['stat'] as String,
-        contact: clientMap['contact'] as String,
-        pro: (clientMap['pro'] as int) == 1,
-        codeClient: clientMap['codeClient'] as String,
-      );
-    }).toList();
   }
 
   void _showProFilterDialog() {
@@ -228,24 +253,59 @@ class _ClientHomeState extends State<ClientHome> {
                       );
                       return;
                     }
+                    try {
+                      final user = FirebaseAuth.instance.currentUser;
+                      final clientCollection =
+                          FirebaseFirestore.instance.collection('clients');
+                      final querySnapshot = await clientCollection.get();
+                      final currentCount = querySnapshot.size;
 
-                    final dbHelper = DataBaseHelper();
-                    final db = await dbHelper.initDB();
-                    await db.insert('client', {
-                      'clientName': nameController.text,
-                      'clientSurname': surnameController.text,
-                      'clientAdress': addressController.text,
-                      'nif': nifController.text,
-                      'stat': statController.text,
-                      'contact': contactController.text,
-                      'mailAdress': emailController.text,
-                      'pro': isPro ? 1 : 0,
-                      'codeClient': codeClientController.text,
-                    });
-                    setState(() {
-                      _clientFuture = getClient();
-                    });
-                    Navigator.of(context).pop();
+                      final clientData = {
+                        'uid': user?.uid ?? "",
+                        'clientName': nameController.text,
+                        'clientSurname': surnameController.text,
+                        'clientAdress': addressController.text,
+                        'nif': isPro ? nifController.text : "",
+                        'stat': isPro ? statController.text : "",
+                        'contact': contactController.text,
+                        'mailAdress': emailController.text,
+                        'pro': isPro ? 1 : 0,
+                        'codeClient': codeClientController.text,
+                        'filePath': selectedFilePath ?? "",
+                        'createdAt': DateTime.now().toIso8601String(),
+                        "idClient": currentCount + 1,
+                      };
+
+                      final response = await http.post(
+                        Uri.parse("http://10.0.2.2:8000/client"),
+                        headers: {"Content-Type": "application/json"},
+                        body: jsonEncode(clientData),
+                      );
+
+                      if (response.statusCode == 200) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Client ajouté avec succès !")),
+                        );
+                        Navigator.of(context).pop();
+
+                        if (mounted) {
+                          setState(() {
+                            _clientFuture = getClient();
+                          });
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  "Erreur backend: ${response.statusCode} - ${response.body}")),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Erreur : ${e.toString()}")),
+                      );
+                    }
                   },
                   child: const Text("Ajouter"),
                 ),
@@ -315,7 +375,9 @@ class _ClientHomeState extends State<ClientHome> {
                                 }
                               });
                             } catch (e) {
-                              print("Erreur de navigation: $e");
+                              if (kDebugMode) {
+                                print("Erreur de navigation: $e");
+                              }
                             }
                           },
                         ),

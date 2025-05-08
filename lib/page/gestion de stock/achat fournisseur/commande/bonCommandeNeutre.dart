@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/produits.dart';
-import 'package:my_apk/database/unite.dart';
+import 'package:my_apk/database/uniteProduit.dart';
 import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
@@ -28,7 +28,7 @@ class Boncommandeneutre extends StatefulWidget {
 class _BoncommandeState extends State<Boncommandeneutre> {
   late Future<List<Unite>> _unityFuture;
   late Future<List<Supplier>> _fournisseurFuture;
-  late Future<List<Category>> _categoryFuture;
+  late Future<List<Categorie>> _categoryFuture;
   late Future<List<Product>> _produitFuture;
   List<Map<String, dynamic>> selectedProducts = [];
 
@@ -50,6 +50,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
     _fournisseurFuture = getFournisseurs();
     _categoryFuture = getCategory();
     _produitFuture = getProduct();
+
     selectedPaymentType = 'Espèce';
     dateCommandeController.text = DateTime.now().toString().substring(0, 10);
   }
@@ -68,14 +69,14 @@ class _BoncommandeState extends State<Boncommandeneutre> {
         .join();
   }
 
-  Future<List<Category>> getCategory() async {
+  Future<List<Categorie>> getCategory() async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
     final List<Map<String, Object?>> categoriesMaps =
         await db.query('category');
     return categoriesMaps.map((categoryMap) {
-      return Category(
-        id: categoryMap['id'] as int,
+      return Categorie(
+        id: categoryMap['id'] as String,
         name: categoryMap['name'] as String,
         description: categoryMap['description'] as String,
       );
@@ -89,10 +90,10 @@ class _BoncommandeState extends State<Boncommandeneutre> {
     print('TTTTTTTTTTTTESTTTTTTTTTTT:  $produitMaps');
     return produitMaps.map((produitMap) {
       return Product(
-        id: produitMap['id'] as int,
+        id: produitMap['id'] as String,
         name: produitMap['name'] as String,
         description: produitMap['description'] as String,
-        categoryId: produitMap['categoryId'] as int,
+        idCategorie: produitMap['categoryId'] as int,
         unityId: produitMap['unityId'] as int,
       );
     }).toList();
@@ -108,10 +109,10 @@ class _BoncommandeState extends State<Boncommandeneutre> {
     );
     return produitMaps.map((produitMap) {
       return Product(
-        id: produitMap['id'] as int,
+        id: produitMap['id'] as String,
         name: produitMap['name'] as String,
         description: produitMap['description'] as String,
-        categoryId: produitMap['categoryId'] as int,
+        idCategorie: produitMap['categoryId'] as int,
         unityId: produitMap['unityId'] as int,
       );
     }).toList();
@@ -131,7 +132,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
     final List<Map<String, Object?>> clientMaps = await db.query('unity');
     return clientMaps.map((clientMaps) {
       return Unite(
-        id: clientMaps['id'] as int,
+        id: clientMaps['id'] as String,
         name: clientMaps['name'] as String,
         unite: clientMaps['unite'] as String,
       );
@@ -145,7 +146,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
         await db.query('fournisseur');
     return fournisseurMaps.map((fournisseurMap) {
       return Supplier(
-        id: fournisseurMap['id'] as int,
+        id: fournisseurMap['id'] as String,
         fournisseurName: fournisseurMap['fournisseurName'] as String,
         fournisseurAdress: fournisseurMap['fournisseurAdress'] as String,
         nif: fournisseurMap['nif'] as String,
@@ -285,7 +286,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
               decoration: const InputDecoration(labelText: "Date de commande"),
               readOnly: true,
             ),
-            FutureBuilder<List<Category>>(
+            FutureBuilder<List<Categorie>>(
               future: _categoryFuture,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const CircularProgressIndicator();
@@ -294,7 +295,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
                   onChanged: _onCategoryChanged,
                   items: snapshot.data!
                       .map((category) => DropdownMenuItem<int>(
-                            value: category.id,
+                            value: category.idCategorie,
                             child: Text(category.name),
                           ))
                       .toList(),
@@ -312,7 +313,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
                       setState(() => selectedProduitId = newValue),
                   items: snapshot.data!
                       .map((produit) => DropdownMenuItem<int>(
-                            value: produit.id,
+                            value: produit.idProduct,
                             child: Text(produit.name),
                           ))
                       .toList(),
@@ -327,7 +328,8 @@ class _BoncommandeState extends State<Boncommandeneutre> {
                   return const CircularProgressIndicator();
                 }
                 final unities = snapshot.data!;
-                selectedUnityId ??= unities.isNotEmpty ? unities[0].id : null;
+                selectedUnityId ??=
+                    (unities.isNotEmpty ? unities[0].id : null) as int?;
 
                 return DropdownButtonFormField<int>(
                   value: selectedUnityId,
@@ -338,7 +340,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
                   },
                   items: unities.map((unite) {
                     return DropdownMenuItem<int>(
-                      value: unite.id,
+                      value: unite.id as int,
                       child: Text(unite.name),
                     );
                   }).toList(),
@@ -355,8 +357,9 @@ class _BoncommandeState extends State<Boncommandeneutre> {
                   return const CircularProgressIndicator();
                 }
                 final fournisseurs = snapshot.data!;
-                selectedFournisseurId ??=
-                    fournisseurs.isNotEmpty ? fournisseurs[0].id : null;
+                selectedFournisseurId ??= (fournisseurs.isNotEmpty
+                    ? fournisseurs[0].id
+                    : null) as int?;
 
                 return DropdownButtonFormField<int>(
                   value: selectedFournisseurId,
@@ -367,7 +370,7 @@ class _BoncommandeState extends State<Boncommandeneutre> {
                   },
                   items: fournisseurs.map((fournisseur) {
                     return DropdownMenuItem<int>(
-                      value: fournisseur.id,
+                      value: fournisseur.id as int,
                       child: Text(fournisseur.fournisseurName),
                     );
                   }).toList(),

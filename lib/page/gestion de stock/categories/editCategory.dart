@@ -15,7 +15,7 @@ import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
 
 class Editcategorie extends StatefulWidget {
-  final Category category;
+  final Categorie category;
 
   const Editcategorie({super.key, required this.category});
 
@@ -174,7 +174,7 @@ class _EditcategorieState extends State<Editcategorie> {
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          db.updateCategory(Category(
+                          db.updateCategory(Categorie(
                             id: widget.category.id,
                             name: nameCategorie.text,
                             description: descriptionCategorie.text,

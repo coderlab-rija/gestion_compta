@@ -1,38 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:my_apk/function/sqlite.dart';
-import 'package:my_apk/database/users.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SettingProfils extends StatefulWidget {
-  final String initialUsername;
-  final String initialLastname;
-  final String initialEmail;
-
-  const SettingProfils({
-    Key? key,
-    required this.initialUsername,
-    required this.initialLastname,
-    required this.initialEmail,
-  }) : super(key: key);
+  const SettingProfils({super.key});
 
   @override
   State<SettingProfils> createState() => _SettingProfilsState();
 }
 
 class _SettingProfilsState extends State<SettingProfils> {
-  late TextEditingController username;
-  late TextEditingController lastname;
-  late TextEditingController email;
+  final TextEditingController username = TextEditingController();
+  final TextEditingController lastname = TextEditingController();
+  final TextEditingController email = TextEditingController();
   final formKey = GlobalKey<FormState>();
-  final dbHelper = DataBaseHelper();
-  int? userId;
 
   @override
   void initState() {
     super.initState();
-    username = TextEditingController(text: widget.initialUsername);
-    lastname = TextEditingController(text: widget.initialLastname);
-    email = TextEditingController(text: widget.initialEmail);
     _loadUserData();
   }
 
@@ -45,16 +30,18 @@ class _SettingProfilsState extends State<SettingProfils> {
   }
 
   Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    userId = prefs.getInt('userId');
-
-    if (userId != null) {
-      Utilisateur? utilisateur = await dbHelper.getUtilisateurById(userId!);
-      if (utilisateur != null) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+      if (doc.exists) {
+        final data = doc.data()!;
         setState(() {
-          username.text = utilisateur.username;
-          lastname.text = utilisateur.lastname;
-          email.text = utilisateur.email;
+          username.text = data['username'] ?? '';
+          lastname.text = data['lastname'] ?? '';
+          email.text = currentUser.email ?? '';
         });
       }
     }
@@ -62,30 +49,19 @@ class _SettingProfilsState extends State<SettingProfils> {
 
   Future<void> _saveChanges() async {
     if (formKey.currentState!.validate()) {
-      final prefs = await SharedPreferences.getInstance();
-      int? userId = prefs.getInt('userId');
-      String? userPassword = prefs.getString('userPassword');
-
-      if (userId != null && userPassword != null) {
-        Utilisateur utilisateur = Utilisateur(
-          id: userId,
-          username: username.text,
-          lastname: lastname.text,
-          email: email.text,
-          password: userPassword,
-        );
-
-        await dbHelper.updateProfil(utilisateur);
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .update({
+          'username': username.text,
+          'lastname': lastname.text,
+        });
 
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profil modifié avec succès")),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  "Erreur : Impossible de récupérer l'utilisateur connecté")),
+          const SnackBar(content: Text("Profil mis à jour avec succès")),
         );
       }
     }
@@ -114,105 +90,75 @@ class _SettingProfilsState extends State<SettingProfils> {
                   ),
                   const SizedBox(height: 20),
 
-                  ///USERNAME///
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(.2),
-                    ),
-                    height: 60,
-                    child: TextFormField(
-                      controller: username,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Nom d'utilisateur obligatoire";
-                        }
-                        return null;
-                      },
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.person),
-                        border: InputBorder.none,
-                        hintText: "Nom d'utilisateur",
-                      ),
-                    ),
+                  /// USERNAME
+                  _buildTextField(
+                    controller: username,
+                    icon: Icons.person,
+                    hintText: "Nom d'utilisateur",
+                    validatorMsg: "Nom d'utilisateur obligatoire",
                   ),
 
-                  ///LASTNAME///
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(.2),
-                    ),
-                    height: 60,
-                    child: TextFormField(
-                      controller: lastname,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Prénom obligatoire";
-                        }
-                        return null;
-                      },
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.person_add),
-                        border: InputBorder.none,
-                        hintText: "Prénom",
-                      ),
-                    ),
+                  /// LASTNAME
+                  _buildTextField(
+                    controller: lastname,
+                    icon: Icons.person_add,
+                    hintText: "Prénom",
+                    validatorMsg: "Prénom obligatoire",
                   ),
 
-                  ///EMAIL///
-                  Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple.withOpacity(.2),
-                    ),
-                    height: 60,
-                    child: TextFormField(
-                      controller: email,
-                      enabled: false,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "E-mail obligatoire";
-                        }
-                        return null;
-                      },
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.email),
-                        border: InputBorder.none,
-                        hintText: "E-mail",
-                      ),
-                    ),
+                  /// EMAIL (non modifiable)
+                  _buildTextField(
+                    controller: email,
+                    icon: Icons.email,
+                    hintText: "E-mail",
+                    enabled: false,
                   ),
 
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 45,
-                    width: MediaQuery.of(context).size.width * .9,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.deepPurple,
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 40, vertical: 15),
                     ),
-                    child: TextButton(
-                      onPressed: _saveChanges,
-                      child: const Text(
-                        "Enregistrer",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
+                    onPressed: _saveChanges,
+                    child: const Text("Enregistrer",
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required IconData icon,
+    required String hintText,
+    String? validatorMsg,
+    bool enabled = true,
+  }) {
+    return Container(
+      margin: const EdgeInsets.all(4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.deepPurple.withOpacity(.2),
+      ),
+      height: 60,
+      child: TextFormField(
+        controller: controller,
+        enabled: enabled,
+        validator: validatorMsg != null
+            ? (value) => value!.isEmpty ? validatorMsg : null
+            : null,
+        decoration: InputDecoration(
+          icon: Icon(icon),
+          border: InputBorder.none,
+          hintText: hintText,
         ),
       ),
     );

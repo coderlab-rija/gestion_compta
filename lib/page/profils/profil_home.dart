@@ -11,7 +11,7 @@ class Profil extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    void _onItemSelected(int index) {
+    void onItemSelected(int index) {
       Navigator.pop(context);
 
       switch (index) {
@@ -61,7 +61,7 @@ class Profil extends StatelessWidget {
           padding: EdgeInsets.all(1.0),
           child: Center(
               child: Text(
-            'Your Profile',
+            'Votre profile',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           )),
@@ -86,27 +86,27 @@ class Profil extends StatelessWidget {
             ),
             ListTile(
               title: const Text('Profile'),
-              onTap: () => _onItemSelected(0),
+              onTap: () => onItemSelected(0),
             ),
             ListTile(
               title: const Text('Stock'),
-              onTap: () => _onItemSelected(1),
+              onTap: () => onItemSelected(1),
             ),
             ListTile(
               title: const Text('Fournisseur'),
-              onTap: () => _onItemSelected(2),
+              onTap: () => onItemSelected(2),
             ),
             ListTile(
               title: const Text('Facturation'),
-              onTap: () => _onItemSelected(3),
+              onTap: () => onItemSelected(3),
             ),
             ListTile(
               title: const Text('Dashboard'),
-              onTap: () => _onItemSelected(4),
+              onTap: () => onItemSelected(4),
             ),
             ListTile(
               title: const Text('Logout'),
-              onTap: () => _onItemSelected(5),
+              onTap: () => onItemSelected(5),
             ),
           ],
         ),

@@ -154,7 +154,7 @@ class _AddcategoryState extends State<Addcategory> {
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
                           final db = DataBaseHelper();
-                          int categoryId = await db.addCategory(Category(
+                          int categoryId = await db.addCategory(Categorie(
                             name: nameCategorie.text,
                             description: description.text,
                           ));

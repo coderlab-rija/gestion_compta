@@ -1,4 +1,9 @@
 import 'dart:async';
+
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
 import 'package:my_apk/database/achatFournisseur.dart';
 import 'package:my_apk/database/client.dart';
 import 'package:my_apk/database/fournisseur.dart';
@@ -7,17 +12,19 @@ import 'package:my_apk/database/hisotriqueProduit.dart';
 import 'package:my_apk/database/paiement.dart';
 import 'package:my_apk/database/produits.dart';
 import 'package:my_apk/database/categorie.dart';
-import 'package:my_apk/database/unite.dart';
+import 'package:my_apk/database/uniteProduit.dart';
 import 'package:my_apk/database/users.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 
 class DataBaseHelper {
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'rija-base35.db');
-    print('Database path: $path');
+
+    final path = join(databasePath, 'rija-base43.db');
+    if (kDebugMode) {
+      print('Database path: $path');
+    }
     return openDatabase(
       path,
       version: 1,
@@ -132,6 +139,31 @@ class DataBaseHelper {
     }
   }
 
+  Future<void> signUps(
+      String username, String lastname, String email, String password) async {
+    final url = Uri.parse('http://127.0.0.1:8000/register');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'username': username,
+        'lastname': lastname,
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      if (kDebugMode) {
+        print('Registration successful');
+      }
+    } else {
+      if (kDebugMode) {
+        print('Registration failed');
+      }
+    }
+  }
+
   Future<List<Utilisateur>> getUsers() async {
     final db = await initDB();
     final List<Map<String, Object?>> usersMaps = await db.query('utilisateur');
@@ -180,21 +212,22 @@ class DataBaseHelper {
 
   //////////////////////////////////category///////////////////////////////////////////
 
-  Future<List<Category>> getCategory() async {
+  Future<List<Categorie>> getCategory() async {
     final db = await initDB();
     final List<Map<String, Object?>> categoriesMaps =
         await db.query('category');
 
     return categoriesMaps.map((categoryMap) {
-      return Category(
-        id: categoryMap['id'] as int,
+      return Categorie(
+        id: categoryMap['id'] as String,
+        idCategorie: categoryMap['idCategorie'] as int,
         name: categoryMap['name'] as String,
         description: categoryMap['description'] as String,
       );
     }).toList();
   }
 
-  Future<int> addCategory(Category category) async {
+  Future<int> addCategory(Categorie category) async {
     try {
       final Database db = await initDB();
       int categoryId = await db.insert(
@@ -250,7 +283,7 @@ class DataBaseHelper {
     );
   }
 
-  Future<void> updateCategory(Category category) async {
+  Future<void> updateCategory(Categorie category) async {
     final db = await initDB();
 
     await db.update(
@@ -386,7 +419,7 @@ class DataBaseHelper {
     );
   }
 
-  Future<List<Unite>> getUnite() async {
+  /*Future<List<Unite>> getUnite() async {
     final db = await initDB();
     final List<Map<String, Object?>> uniteMaps = await db.query('unite');
 
@@ -397,7 +430,7 @@ class DataBaseHelper {
         unite: uniteMaps['unite'] as String,
       );
     }).toList();
-  }
+  }*/
 
   Future<int> deleteProduct(int id) async {
     try {
@@ -426,7 +459,7 @@ class DataBaseHelper {
 
     return fournisseurMaps.map((fournisseurMaps) {
       return Supplier(
-        id: fournisseurMaps['id'] as int,
+        id: fournisseurMaps['id'] as String,
         fournisseurName: fournisseurMaps['fournisseurName'] as String,
         fournisseurAdress: fournisseurMaps['fournisseurAdress'] as String,
         nif: fournisseurMaps['nif'] as String,
@@ -475,25 +508,7 @@ class DataBaseHelper {
     }
   }
 
-  Future<List<Client>> getClient() async {
-    final db = await initDB();
-    final List<Map<String, Object?>> clientMaps = await db.query('client');
 
-    return clientMaps.map((clientMaps) {
-      return Client(
-        id: clientMaps['id'] as int,
-        clientName: clientMaps['clientName'] as String,
-        clientSurname: clientMaps['clientSurname'] as String,
-        clientAdress: clientMaps['clientAdress'] as String,
-        mailAdress: clientMaps['mailAdress'] as String,
-        nif: clientMaps['nif'] as String,
-        stat: clientMaps['stat'] as String,
-        contact: clientMaps['contact'] as String,
-        pro: clientMaps['pro'] as bool,
-        codeClient: clientMaps['codeClient'] as String,
-      );
-    }).toList();
-  }
 
   Future<void> updateClient(Client client) async {
     final db = await initDB();
@@ -520,7 +535,7 @@ class DataBaseHelper {
     }
   }
 
-  Future<List<Unite>> getUnity() async {
+  /*Future<List<Unite>> getUnity() async {
     final db = await initDB();
     final List<Map<String, Object?>> clientMaps = await db.query('unity');
 
@@ -531,7 +546,7 @@ class DataBaseHelper {
         unite: clientMaps['unite'] as String,
       );
     }).toList();
-  }
+  }*/
 
   Future<void> updateUnity(Unite unite) async {
     final db = await initDB();

@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_apk/database/fournisseur.dart';
-import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/fournisseur/editSupplier.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
@@ -22,31 +26,52 @@ class Supplierhome extends StatefulWidget {
 }
 
 class _ListSupplierState extends State<Supplierhome> {
-  late Future<List<Supplier>> _fournisseurFuture;
+  late Future<List<Supplier>> _supplierFuture;
 
   @override
   void initState() {
     super.initState();
-    _fournisseurFuture = getSupplier();
+    _supplierFuture = getSupplier();
   }
 
   Future<List<Supplier>> getSupplier() async {
-    final dbHelper = DataBaseHelper();
-    final db = await dbHelper.initDB();
-    final List<Map<String, Object?>> fournisseurMaps =
-        await db.query('fournisseur');
-    return fournisseurMaps.map((fournisseurMap) {
-      return Supplier(
-        id: fournisseurMap['id'] as int,
-        fournisseurName: (fournisseurMap['fournisseurName'] ?? '') as String,
-        fournisseurAdress:
-            (fournisseurMap['fournisseurAdress'] ?? '') as String,
-        nif: (fournisseurMap['nif'] ?? '') as String,
-        stat: (fournisseurMap['stat'] ?? '') as String,
-        contact: (fournisseurMap['contact'] ?? '') as String,
-        dateCreation: (fournisseurMap['dateCreation'] ?? '') as String,
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final uid = user?.uid;
+
+      if (uid == null) {
+        throw Exception("Utilisateur non connecté");
+      }
+
+      final response = await http.get(
+        Uri.parse("http://10.0.2.2:8000/fournisseurs/user?uid=$uid"),
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-UID": uid,
+        },
       );
-    }).toList();
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final List<dynamic> suppliersData = responseData['supplier'];
+
+        return suppliersData.map((supplier) {
+          return Supplier(
+            id: supplier['id'],
+            fournisseurName: supplier['fournisseurName'],
+            fournisseurAdress: supplier['fournisseurAdress'],
+            nif: supplier['nif'],
+            stat: supplier['stat'],
+            contact: supplier['contact'],
+            dateCreation: supplier['dateCreation'],
+          );
+        }).toList();
+      } else {
+        throw Exception('Erreur backend : ${response.body}');
+      }
+    } catch (e) {
+      throw Exception("Erreur lors de la récupération des fournisseurs: $e");
+    }
   }
 
   void _onItemSelected(int index) {
@@ -216,20 +241,84 @@ class _ListSupplierState extends State<Supplierhome> {
             ),
             TextButton(
               onPressed: () async {
-                final dbHelper = DataBaseHelper();
-                final db = await dbHelper.initDB();
-                await db.insert('fournisseur', {
-                  'fournisseurName': nameController.text,
-                  'fournisseurAdress': addressController.text,
-                  'nif': nifController.text,
-                  'stat': statController.text,
-                  'contact': contactController.text,
-                  'dateCreation': dateController.text,
-                });
-                setState(() {
-                  _fournisseurFuture = getSupplier();
-                });
-                Navigator.of(context).pop();
+                try {
+                  final clientData = {
+                    'fournisseurName': nameController.text,
+                    'fournisseurAdress': addressController.text,
+                    'nif': nifController.text,
+                    'stat': statController.text,
+                    'contact': contactController.text,
+                    'dateCreation': dateController.text,
+                    'createdAt': FieldValue.serverTimestamp(),
+                  };
+
+                  await FirebaseFirestore.instance
+                      .collection("fournisseurs")
+                      .add(clientData);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text("Fournisseur ajouté avec succès !")),
+                  );
+
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Erreur : ${e.toString()}")),
+                  );
+                }
+
+                try {
+                  final user = FirebaseAuth.instance.currentUser;
+                  final fournisseurCollection =
+                      FirebaseFirestore.instance.collection('fournisseurs');
+                  final querySnapshot = await fournisseurCollection.get();
+                  final currentCount = querySnapshot.size;
+
+                  final supplierData = {
+                    'uid': user?.uid ?? "",
+                    'fournisseurName': nameController.text,
+                    'fournisseurAdress': addressController.text,
+                    'nif': nifController.text,
+                    'stat': statController.text,
+                    'contact': contactController.text,
+                    'dateCreation': dateController.text,
+                    'createdAt': DateTime.now().toIso8601String(),
+                    "idSupplier": currentCount + 1,
+                  };
+
+                  final response = await http.post(
+                    Uri.parse("http://10.0.2.2:8000/fournisseurs"),
+                    headers: {"Content-Type": "application/json"},
+                    body: jsonEncode(supplierData),
+                  );
+
+                  if (response.statusCode == 200) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Fournisseur ajouté avec succès !")),
+                    );
+                    Navigator.of(context).pop();
+
+                    if (mounted) {
+                      setState(() {
+                        _supplierFuture = getSupplier();
+                      });
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text(
+                              "Erreur backend: ${response.statusCode} - ${response.body}")),
+                    );
+                  }
+                } catch (e) {
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Erreur : ${e.toString()}")),
+                  );
+                }
               },
               child: const Text("Add"),
             ),
@@ -242,106 +331,105 @@ class _ListSupplierState extends State<Supplierhome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        drawer: Sidebar(onItemSelected: _onItemSelected),
-        body: FutureBuilder<List<Supplier>>(
-          future: _fournisseurFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("No suppliers found"));
-            } else {
-              final fournisseurs = snapshot.data!;
-              return ListView.builder(
-                itemCount: fournisseurs.length,
-                itemBuilder: (context, index) {
-                  final fournisseur = fournisseurs[index];
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                fournisseur.fournisseurName,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.teal,
+      drawer: Sidebar(onItemSelected: _onItemSelected),
+      body: FutureBuilder<List<Supplier>>(
+        future: _supplierFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text("Aucun fournisseur trouvé"));
+          } else {
+            final fournisseurs = snapshot.data!;
+            return ListView.builder(
+              itemCount: fournisseurs.length,
+              itemBuilder: (context, index) {
+                final fournisseur = fournisseurs[index];
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              fournisseur.fournisseurName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.teal,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.info,
+                                      color: Colors.blue),
+                                  onPressed: () {
+                                    _showDetails(context, fournisseur);
+                                  },
                                 ),
-                              ),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.info,
-                                        color: Colors.blue),
-                                    onPressed: () {
-                                      _showDetails(context, fournisseur);
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit,
-                                        color: Colors.orange),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Editsupplier(
-                                              supplier: fournisseur),
-                                        ),
-                                      ).then((value) {
-                                        if (value == true) {
-                                          setState(() {
-                                            _fournisseurFuture = getSupplier();
-                                          });
-                                        }
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          Text("NIF: ${fournisseur.nif}"),
-                          const SizedBox(height: 5),
-                          Text("STAT: ${fournisseur.stat}"),
-                          const SizedBox(height: 5),
-                          Text("Addresse: ${fournisseur.fournisseurAdress}"),
-                          const SizedBox(height: 5),
-                          Text("Contact: ${fournisseur.contact}"),
-                        ],
-                      ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.orange),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            Editsupplier(supplier: fournisseur),
+                                      ),
+                                    ).then((value) {
+                                      if (value == true) {
+                                        setState(() {
+                                          _supplierFuture = getSupplier();
+                                        });
+                                      }
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Text("NIF: ${fournisseur.nif}"),
+                        const SizedBox(height: 5),
+                        Text("STAT: ${fournisseur.stat}"),
+                        const SizedBox(height: 5),
+                        Text("Adresse: ${fournisseur.fournisseurAdress}"),
+                        const SizedBox(height: 5),
+                        Text("Contact: ${fournisseur.contact}"),
+                      ],
                     ),
-                  );
-                },
-              );
-            }
-          },
-        ),
-        floatingActionButton: Stack(
-          children: [
-            Positioned(
-              bottom: 16,
-              right: 5,
-              child: FloatingActionButton(
-                onPressed: _addFournisseur,
-                child: const Icon(Icons.add),
-              ),
+                  ),
+                );
+              },
+            );
+          }
+        },
+      ),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 16,
+            right: 5,
+            child: FloatingActionButton(
+              onPressed: _addFournisseur,
+              child: const Icon(Icons.add),
             ),
-          ],
-        ));
+          ),
+        ],
+      ),
+    );
   }
 
   void _showDetails(BuildContext context, Supplier fournisseur) {

@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Supplier {
-  final int? id;
+  final String? id;
+  final int? idSupplier; 
   String fournisseurName;
   String fournisseurAdress;
   String nif;
@@ -9,6 +12,7 @@ class Supplier {
 
   Supplier({
     this.id,
+    this.idSupplier,
     required this.fournisseurName,
     required this.fournisseurAdress,
     required this.nif,
@@ -17,18 +21,33 @@ class Supplier {
     required this.dateCreation,
   });
 
-  factory Supplier.fromMap(Map<String, dynamic> json) => Supplier(
-        id: json["id"],
-        fournisseurName: json["fournisseurName"],
-        fournisseurAdress: json["fournisseurAdress"],
-        nif: json["nif"],
-        stat: json["stat"],
-        contact: json["contact"],
-        dateCreation: json["dateCreation"],
-      );
+  factory Supplier.fromFirestore(DocumentSnapshot doc) {
+    var data = doc.data() as Map<String, dynamic>;
+    return Supplier(
+      id: doc.id,
+      idSupplier: data['idSupplier'],
+      fournisseurName: data['fournisseurName'] ?? '',
+      fournisseurAdress: data['fournisseurAdress'] ?? '',
+      nif: data['nif'] ?? '',
+      stat: data['stat'] ?? '',
+      contact: data['contact'] ?? '',
+      dateCreation: data['dateCreation'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toFirestore() => {
+        "fournisseurName": fournisseurName,
+        "fournisseurAdress": fournisseurAdress,
+        "nif": nif,
+        "stat": stat,
+        "contact": contact,
+        "dateCreation": dateCreation,
+        "idSupplier": idSupplier,
+      };
 
   Map<String, dynamic> toMap() => {
         "id": id,
+        "idSupplier": idSupplier,
         "fournisseurName": fournisseurName,
         "fournisseurAdress": fournisseurAdress,
         "nif": nif,

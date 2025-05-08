@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/produits.dart';
-import 'package:my_apk/database/unite.dart';
+import 'package:my_apk/database/uniteProduit.dart';
+import 'package:my_apk/function/fonction.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
@@ -16,7 +20,6 @@ import 'package:my_apk/page/gestion%20de%20stock/inventaires/inventaire.dart';
 import 'package:my_apk/page/gestion%20de%20stock/produits/editProduct.dart';
 import 'package:my_apk/page/profils/profil_home.dart';
 import 'package:my_apk/page/widget/sideBar.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Listproduct extends StatefulWidget {
   const Listproduct({super.key});
@@ -26,13 +29,20 @@ class Listproduct extends StatefulWidget {
 }
 
 class _ListproduitState extends State<Listproduct> {
+  Fonction fonction = Fonction();
   late Future<List<Product>> _productFuture;
+<<<<<<< Updated upstream
   late Future<List<Category>> _categoryFuture;
+=======
+  late Future<List<Categorie>> _categoryFuture;
+  late Future<List<Unite>> _unityFuture;
+>>>>>>> Stashed changes
   int? selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
+<<<<<<< Updated upstream
     _productFuture = getProduct();
     _categoryFuture = getCategory();
   }
@@ -74,6 +84,11 @@ class _ListproduitState extends State<Listproduct> {
         categoryName: productMap['categoryName'] as String,
       );
     }).toList();
+=======
+    _productFuture = fonction.getProducts();
+    _categoryFuture = fonction.getCategory();
+    _unityFuture = fonction.getUnity();
+>>>>>>> Stashed changes
   }
 
   Future<List<Category>> getCategory() async {
@@ -161,21 +176,128 @@ class _ListproduitState extends State<Listproduct> {
   Future<void> _showAddProductDialog() async {
     String name = '';
     String description = '';
-    int? categoryId;
-    int? unityId;
+    int? idCategorie;
+    int? idUnity;
+    String? unityName;
+    String? categoryName;
 
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          //title: const Text('Ajouter un produit'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                onChanged: (value) => name = value,
-                decoration: const InputDecoration(labelText: 'Nom du produit'),
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Ajouter un produit'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      onChanged: (value) => name = value,
+                      decoration:
+                          const InputDecoration(labelText: 'Nom du produit'),
+                    ),
+                    TextField(
+                      onChanged: (value) => description = value,
+                      decoration:
+                          const InputDecoration(labelText: 'Description'),
+                    ),
+                    FutureBuilder<List<Categorie>>(
+                      future: _categoryFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          print("Erreur catégorie: ${snapshot.error}");
+                          return const Text(
+                              "Erreur de chargement des catégories");
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Text("Aucune catégorie trouvée");
+                        }
+
+                        final categories = snapshot.data!;
+
+                        // ⚠️ Vérifie que categoryId est bien dans la liste, sinon remets-le à null
+                        if (idCategorie != null &&
+                            !categories
+                                .any((cat) => cat.idCategorie == idCategorie)) {
+                          idCategorie = null;
+                        }
+
+                        return DropdownButton<int>(
+                          isExpanded: true,
+                          hint: const Text('Sélectionner une catégorie'),
+                          value: idCategorie,
+                          onChanged: (int? newValue) {
+                            setStateDialog(() {
+                              idCategorie = newValue;
+                              final selected = categories.firstWhere(
+                                (element) => element.idCategorie == newValue,
+                                orElse: () => Categorie(
+                                    idCategorie: -1, name: '', description: ''),
+                              );
+                              categoryName = selected.name;
+                            });
+                          },
+                          items: categories.map((category) {
+                            return DropdownMenuItem<int>(
+                              value: category.idCategorie,
+                              child: Text(category.name),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                    FutureBuilder<List<Unite>>(
+                      future: _unityFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return const Text(
+                              "Erreur de chargement des catégories");
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Text("Aucune catégorie trouvée");
+                        }
+
+                        final categories = snapshot.data!;
+                        if (idUnity != null &&
+                            !categories.any((cat) => cat.idUnity == idUnity)) {
+                          idUnity = null;
+                        }
+
+                        return DropdownButton<int>(
+                          isExpanded: true,
+                          hint: const Text('Sélectionner une unité'),
+                          value: idUnity,
+                          onChanged: (int? newValue) {
+                            setStateDialog(() {
+                              idUnity = newValue;
+                              final selected = categories.firstWhere(
+                                (element) => element.idUnity == newValue,
+                                orElse: () =>
+                                    Unite(idUnity: -1, name: '', unite: ''),
+                              );
+                              unityName = selected.name;
+                            });
+                          },
+                          items: categories.map((category) {
+                            return DropdownMenuItem<int>(
+                              value: category.idUnity,
+                              child: Text(category.name),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
+<<<<<<< Updated upstream
               TextField(
                 onChanged: (value) => description = value,
                 decoration: const InputDecoration(labelText: 'Description'),
@@ -258,6 +380,76 @@ class _ListproduitState extends State<Listproduct> {
               child: const Text('Add'),
             ),
           ],
+=======
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Annuler'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (name.isNotEmpty &&
+                        description.isNotEmpty &&
+                        idCategorie != null) {
+                      try {
+                        final user = FirebaseAuth.instance.currentUser;
+
+                        final productData = {
+                          'uid': user?.uid ?? "",
+                          'name': name,
+                          'description': description,
+                          'idCategorie': idCategorie,
+                          'unityId': idUnity,
+                          'unityName': unityName,
+                          'categoryName': categoryName,
+                          'createdAt': DateTime.now().toIso8601String(),
+                        };
+
+                        final response = await http.post(
+                          Uri.parse("http://10.0.2.2:8000/products"),
+                          headers: {"Content-Type": "application/json"},
+                          body: jsonEncode(productData),
+                        );
+
+                        if (response.statusCode == 200) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Produit ajouté avec succès !")),
+                          );
+                          Navigator.of(context).pop();
+
+                          if (mounted) {
+                            setState(() {
+                              _productFuture = fonction.getProducts();
+                            });
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Erreur backend: ${response.statusCode} - ${response.body}",
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Erreur : ${e.toString()}")),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Veuillez remplir tous les champs.")),
+                      );
+                    }
+                  },
+                  child: const Text('Ajouter'),
+                ),
+              ],
+            );
+          },
+>>>>>>> Stashed changes
         );
       },
     );
@@ -272,10 +464,8 @@ class _ListproduitState extends State<Listproduct> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("No products found"));
+              return const Center(child: Text("Aucune donnée disponible"));
             } else {
               final product = snapshot.data!;
               return ListView.builder(
@@ -332,7 +522,7 @@ class _ListproduitState extends State<Listproduct> {
                                     icon: const Icon(Icons.delete,
                                         color: Colors.red),
                                     onPressed: () {
-                                      _deleteProduct(response.id!);
+                                      _deleteProduct(response.idProduct!);
                                     },
                                   ),
                                 ],
@@ -372,7 +562,9 @@ class _ListproduitState extends State<Listproduct> {
               bottom: 16,
               right: 5,
               child: FloatingActionButton(
-                onPressed: _showAddProductDialog,
+                onPressed: () {
+                  _showAddProductDialog();
+                },
                 child: const Icon(Icons.add),
               ),
             ),
@@ -394,7 +586,7 @@ class _ListproduitState extends State<Listproduct> {
     final db = await dbHelper.initDB();
     await db.delete('product', where: 'id = ?', whereArgs: [id]);
     setState(() {
-      _productFuture = getProduct();
+      _productFuture = fonction.getProducts();
     });
   }
 }

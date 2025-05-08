@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/produits.dart';
-import 'package:my_apk/database/unite.dart';
+import 'package:my_apk/database/uniteProduit.dart';
 import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
@@ -48,7 +48,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
     _fournisseurFuture = getFournisseurs();
 
     dateCommandeController.text = DateTime.now().toString().substring(0, 10);
-    selectedCategoryId = widget.product.categoryId;
+    selectedCategoryId = widget.product.idCategorie;
     selectedUnityId = widget.product.unityId;
     selectedFournisseurId = null;
     selectedPaymentType = 'Espèce';
@@ -68,14 +68,14 @@ class _BoncommandeState extends State<Boncommandeproduct> {
         .join();
   }
 
-  Future<List<Category>> getCategory() async {
+  Future<List<Categorie>> getCategory() async {
     final dbHelper = DataBaseHelper();
     final db = await dbHelper.initDB();
     final List<Map<String, Object?>> categoriesMaps =
         await db.query('category');
     return categoriesMaps.map((categoryMap) {
-      return Category(
-        id: categoryMap['id'] as int,
+      return Categorie(
+        id: categoryMap['id'] as String,
         name: categoryMap['name'] as String,
         description: categoryMap['description'] as String,
       );
@@ -88,7 +88,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
     final List<Map<String, Object?>> clientMaps = await db.query('unity');
     return clientMaps.map((clientMaps) {
       return Unite(
-        id: clientMaps['id'] as int,
+        id: clientMaps['id'] as String,
         name: clientMaps['name'] as String,
         unite: clientMaps['unite'] as String,
       );
@@ -102,7 +102,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
         await db.query('fournisseur');
     return fournisseurMaps.map((fournisseurMap) {
       return Supplier(
-        id: fournisseurMap['id'] as int,
+        id: fournisseurMap['id'] as String,
         fournisseurName: fournisseurMap['fournisseurName'] as String,
         fournisseurAdress: fournisseurMap['fournisseurAdress'] as String,
         nif: fournisseurMap['nif'] as String,
@@ -249,7 +249,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
                   return const CircularProgressIndicator();
                 }
                 final unities = snapshot.data!;
-                selectedUnityId ??= unities.isNotEmpty ? unities[0].id : null;
+                //selectedUnityId ??= unities.isNotEmpty ? unities[0].id : null;
 
                 return DropdownButtonFormField<int>(
                   value: selectedUnityId,
@@ -260,7 +260,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
                   },
                   items: unities.map((unite) {
                     return DropdownMenuItem<int>(
-                      value: unite.id,
+                      //value: unite.id,
                       child: Text(unite.name),
                     );
                   }).toList(),
@@ -277,8 +277,9 @@ class _BoncommandeState extends State<Boncommandeproduct> {
                   return const CircularProgressIndicator();
                 }
                 final fournisseurs = snapshot.data!;
-                selectedFournisseurId ??=
-                    fournisseurs.isNotEmpty ? fournisseurs[0].id : null;
+                selectedFournisseurId ??= (fournisseurs.isNotEmpty
+                    ? fournisseurs[0].id
+                    : null) as int?;
 
                 return DropdownButtonFormField<int>(
                   value: selectedFournisseurId,
@@ -289,7 +290,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
                   },
                   items: fournisseurs.map((fournisseur) {
                     return DropdownMenuItem<int>(
-                      value: fournisseur.id,
+                      value: fournisseur.id as int,
                       child: Text(fournisseur.fournisseurName),
                     );
                   }).toList(),

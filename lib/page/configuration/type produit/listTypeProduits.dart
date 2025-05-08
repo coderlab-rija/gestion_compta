@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:my_apk/page/authentification/login.dart';
@@ -22,7 +26,7 @@ class ListTypeproduits extends StatefulWidget {
 }
 
 class _ListTypeProduitState extends State<ListTypeproduits> {
-  late Future<List<Category>> _categoryFuture;
+  late Future<List<Categorie>> _categoryFuture;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -30,12 +34,42 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
   @override
   void initState() {
     super.initState();
-    _categoryFuture = fetchCategory();
+    _categoryFuture = getCategory();
   }
 
-  Future<List<Category>> fetchCategory() async {
-    final dbHelper = DataBaseHelper();
-    return await dbHelper.getCategory();
+  Future<List<Categorie>> getCategory() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final uid = user?.uid;
+
+      if (uid == null) {
+        throw Exception("Utilisateur non connecté");
+      }
+
+      final response = await http.get(
+        Uri.parse("http://10.0.2.2:8000/category/user?uid=$uid"),
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-UID": uid,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final List<dynamic> categoryData = responseData['category'];
+
+        return categoryData.map((category) {
+          return Categorie(
+              id: category['id'],
+              name: category['name'],
+              description: category['description']);
+        }).toList();
+      } else {
+        throw Exception('Erreur backend : ${response.body}');
+      }
+    } catch (e) {
+      throw Exception("Erreur lors de la récupération des category: $e");
+    }
   }
 
   void _onItemSelected(int index) {
@@ -124,19 +158,51 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
                 String description = _descriptionController.text;
 
                 if (name.isNotEmpty && description.isNotEmpty) {
-                  final dbHelper = DataBaseHelper();
-                  Category newCategory = Category(
-                    name: name,
-                    description: description,
-                  );
-                  await dbHelper.addCategory(newCategory);
-                  setState(() {
-                    _categoryFuture = fetchCategory();
-                  });
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Type de produit ajouté')),
-                  );
+                  try {
+                    final user = FirebaseAuth.instance.currentUser;
+                    final clientCollection =
+                        FirebaseFirestore.instance.collection('category');
+                    final querySnapshot = await clientCollection.get();
+                    final currentCount = querySnapshot.size;
+
+                    final categoryData = {
+                      'uid': user?.uid ?? "",
+                      'name': _nameController.text,
+                      'description': _descriptionController.text,
+                      'createdAt': DateTime.now().toIso8601String(),
+                      "idCategorie": currentCount + 1,
+                    };
+
+                    final response = await http.post(
+                      Uri.parse("http://10.0.2.2:8000/category"),
+                      headers: {"Content-Type": "application/json"},
+                      body: jsonEncode(categoryData),
+                    );
+
+                    if (response.statusCode == 200) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Category ajouté avec succès !")),
+                      );
+                      Navigator.of(context).pop();
+
+                      if (mounted) {
+                        setState(() {
+                          _categoryFuture = getCategory();
+                        });
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                "Erreur backend: ${response.statusCode} - ${response.body}")),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Erreur : ${e.toString()}")),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -152,7 +218,7 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
     );
   }
 
-  void _editTypeProduct(Category category) {
+  void _editTypeProduct(Categorie category) {
     _nameController.text = category.name;
     _descriptionController.text = category.description;
 
@@ -188,14 +254,14 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
 
                 if (name.isNotEmpty && description.isNotEmpty) {
                   final dbHelper = DataBaseHelper();
-                  Category updatedCategory = Category(
+                  Categorie updatedCategory = Categorie(
                     id: category.id,
                     name: name,
                     description: description,
                   );
                   await dbHelper.updateCategory(updatedCategory);
                   setState(() {
-                    _categoryFuture = fetchCategory();
+                    _categoryFuture = getCategory();
                   });
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -223,15 +289,13 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
         title: const Text("Listes des types de produits"),
       ),
       drawer: Sidebar(onItemSelected: _onItemSelected),
-      body: FutureBuilder<List<Category>>(
+      body: FutureBuilder<List<Categorie>>(
         future: _categoryFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Aucune catégorie trouvée"));
+            return const Center(child: Text("Aucune type de produit trouvée"));
           } else {
             final typeProduct = snapshot.data!;
             return ListView.builder(
@@ -310,13 +374,13 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addProduit,
-        child: const Icon(Icons.add),
         tooltip: 'Ajouter un type de produit',
+        child: const Icon(Icons.add),
       ),
     );
   }
 
-  void _deleteCategorie(Category category) {
+  void _deleteCategorie(Categorie category) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -331,10 +395,11 @@ class _ListTypeProduitState extends State<ListTypeproduits> {
             TextButton(
               onPressed: () async {
                 final dbHelper = DataBaseHelper();
-                final result = await dbHelper.deleteCategory(category.id!);
+                final result =
+                    await dbHelper.deleteCategory(category.idCategorie!);
                 if (result != -1) {
                   setState(() {
-                    _categoryFuture = fetchCategory();
+                    _categoryFuture = getCategory();
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

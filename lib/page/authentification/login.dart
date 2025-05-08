@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_apk/page/home/home.dart';
 import 'package:my_apk/page/authentification/signup.dart';
-import 'package:my_apk/database/users.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,28 +27,85 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoginTrue = false;
 
   Future<void> login() async {
-    int? userId = await db.login(Utilisateur(
-      username: username.text,
-      lastname: lastname.text,
-      email: email.text,
-      password: password.text,
-    ));
-
-    if (userId != null) {
-      print('User login with id: $userId');
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('userId', userId);
-
-      await getUtilisateurById(userId);
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email.text.trim(),
+        password: password.text.trim(),
       );
-    } else {
-      setState(() {
-        isLoginTrue = true;
-      });
+
+      if (kDebugMode) {
+        print("Utilisateur connecté : ${credential.user?.email}");
+      }
+
+      final uid = credential.user!.uid;
+
+      final userDoc =
+          await FirebaseFirestore.instance.collection("users").doc(uid).get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        final username = data['username'];
+        final lastname = data['lastname'];
+        final role = data['role'];
+
+        final response = await http.post(
+          Uri.parse("http://10.0.2.2:8000/login"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "uid": uid,
+            "username": username,
+            "lastname": lastname,
+            "email": credential.user!.email,
+            "role": role,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          if (kDebugMode) {
+            print("Connexion backend réussie !");
+          }
+
+          if (!mounted) return; // protection contre widget démonté
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          if (kDebugMode) {
+            print("Erreur backend : ${response.body}");
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Erreur serveur")),
+            );
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print("Utilisateur non trouvé.");
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Utilisateur non trouvé")),
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoginTrue = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur : ${e.message}")),
+        );
+      }
+
+      if (kDebugMode) {
+        print("Erreur login : ${e.code} - ${e.message}");
+      }
     }
   }
 
