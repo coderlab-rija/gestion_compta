@@ -122,21 +122,22 @@ class _ClientHomeState extends State<ClientHome> {
     );
   }
 
-  void _addClient() {
+  void _addClient() async {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController surnameController = TextEditingController();
+    final TextEditingController addressController = TextEditingController();
+    final TextEditingController nifController = TextEditingController();
+    final TextEditingController statController = TextEditingController();
+    final TextEditingController contactController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController codeClientController = TextEditingController();
+    bool isPro = false;
+    final generatedCode = await _generateClientCode();
+    codeClientController.text = generatedCode;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final TextEditingController nameController = TextEditingController();
-        final TextEditingController surnameController = TextEditingController();
-        final TextEditingController addressController = TextEditingController();
-        final TextEditingController nifController = TextEditingController();
-        final TextEditingController statController = TextEditingController();
-        final TextEditingController contactController = TextEditingController();
-        final TextEditingController emailController = TextEditingController();
-        final TextEditingController codeClientController =
-            TextEditingController();
-        bool isPro = false;
-
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
@@ -145,12 +146,18 @@ class _ClientHomeState extends State<ClientHome> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(
-                      controller: codeClientController,
-                      decoration: const InputDecoration(
-                        labelText: "Code client",
-                        border: OutlineInputBorder(),
-                      ),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isPro,
+                          onChanged: (bool? newValue) {
+                            setStateDialog(() {
+                              isPro = newValue ?? false;
+                            });
+                          },
+                        ),
+                        const Text("Client professionnel ?"),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -186,22 +193,6 @@ class _ClientHomeState extends State<ClientHome> {
                     ),
                     const SizedBox(height: 10),
                     TextField(
-                      controller: nifController,
-                      decoration: const InputDecoration(
-                        labelText: "NIF",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: statController,
-                      decoration: const InputDecoration(
-                        labelText: "STAT",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
                       controller: contactController,
                       decoration: const InputDecoration(
                         labelText: "Contact",
@@ -209,19 +200,24 @@ class _ClientHomeState extends State<ClientHome> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: isPro,
-                          onChanged: (bool? newValue) {
-                            setStateDialog(() {
-                              isPro = newValue ?? false;
-                            });
-                          },
+                    if (isPro) ...[
+                      TextField(
+                        controller: nifController,
+                        decoration: const InputDecoration(
+                          labelText: "NIF",
+                          border: OutlineInputBorder(),
                         ),
-                        const Text("Client professionnel?"),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: statController,
+                        decoration: const InputDecoration(
+                          labelText: "STAT",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ],
                 ),
               ),

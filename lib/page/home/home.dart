@@ -33,8 +33,8 @@ class _HomePageState extends State<HomePage> {
     const ListBoncommande(),
     const Bonreceptionproduct(),
     const Facturationhome(),
-    const Facturationhome(),
     const ClientHome(),
+    const Facturationhome(),
     const Dashboard(),
     const Configurationhome(),
     const Inventaire(), //Historique

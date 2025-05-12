@@ -6,7 +6,7 @@ import 'package:my_apk/page/authentification/login.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-   FirebaseFirestore.instance.settings = const Settings(
+  FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
   );
   runApp(MyApp());
