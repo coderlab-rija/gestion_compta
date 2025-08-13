@@ -242,7 +242,7 @@ class _EditproduitState extends State<Editproduct> {
                             id: widget.product.id,
                             name: nameProduct.text,
                             description: desccritpion.text,
-                            categoryId: widget.product.categoryId,
+                            idCategorie: widget.product.idCategorie,
                             unityName: unity.text,
                             categoryName: categoryName.text,
                           ));

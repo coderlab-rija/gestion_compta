@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:my_apk/database/unite.dart';
-import 'package:my_apk/function/sqlite.dart';
+import 'package:http/http.dart' as http;
+import 'package:my_apk/database/uniteProduit.dart';
+import 'package:my_apk/function/fonction.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/dashboard/dashboard.dart';
@@ -22,17 +26,13 @@ class Listunity extends StatefulWidget {
 }
 
 class _ListunityState extends State<Listunity> {
+  Fonction fonction = Fonction();
   late Future<List<Unite>> _unityFuture;
 
   @override
   void initState() {
     super.initState();
-    _unityFuture = fetchUnity();
-  }
-
-  Future<List<Unite>> fetchUnity() async {
-    final dbHelper = DataBaseHelper();
-    return await dbHelper.getUnity();
+    _unityFuture = fonction.getUnity();
   }
 
   void _onItemSelected(int index) {
@@ -136,17 +136,8 @@ class _ListunityState extends State<Listunity> {
             ElevatedButton(
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final dbHelper = DataBaseHelper();
-                  await dbHelper.updateUnity(
-                    Unite(
-                      id: unity.id,
-                      name: nameController.text,
-                      unite: uniteController.text,
-                    ),
-                  );
-                  setState(() {
-                    _unityFuture = fetchUnity();
-                  });
+                  fonction.updateUnity(unity.idUnity!, nameController.text,
+                      uniteController.text);
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -209,16 +200,51 @@ class _ListunityState extends State<Listunity> {
             ElevatedButton(
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final dbHelper = DataBaseHelper();
-                  await dbHelper.AddUnity(Unite(
-                      name: nameController.text, unite: uniteController.text));
-                  setState(() {
-                    _unityFuture = fetchUnity();
-                  });
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Unité ajoutée avec succès.")),
-                  );
+                  try {
+                    final user = FirebaseAuth.instance.currentUser;
+                    final clientCollection =
+                        FirebaseFirestore.instance.collection('unite');
+                    final querySnapshot = await clientCollection.get();
+                    final currentCount = querySnapshot.size;
+
+                    final unityData = {
+                      'uid': user?.uid ?? "",
+                      'name': nameController.text,
+                      'unite': uniteController.text,
+                      'createdAt': DateTime.now().toIso8601String(),
+                      "idUnity": currentCount + 1,
+                    };
+
+                    final response = await http.post(
+                      Uri.parse("http://10.0.2.2:8000/unite"),
+                      headers: {"Content-Type": "application/json"},
+                      body: jsonEncode(unityData),
+                    );
+
+                    if (response.statusCode == 200) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Unité ajouté avec succès !")),
+                      );
+                      Navigator.of(context).pop();
+
+                      if (mounted) {
+                        setState(() {
+                          _unityFuture = fonction.getUnity();
+                        });
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                "Erreur backend: ${response.statusCode} - ${response.body}")),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Erreur : ${e.toString()}")),
+                    );
+                  }
                 }
               },
               child: const Text("Ajouter"),
@@ -241,8 +267,6 @@ class _ListunityState extends State<Listunity> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Erreur: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text("Aucune unité trouvée."));
           } else {
@@ -307,8 +331,8 @@ class _ListunityState extends State<Listunity> {
             right: 5,
             child: FloatingActionButton(
               onPressed: _addUnity,
-              child: const Icon(Icons.add),
               tooltip: 'Ajouter une nouvelle unité',
+              child: const Icon(Icons.add),
             ),
           ),
         ],
@@ -328,7 +352,7 @@ class _ListunityState extends State<Listunity> {
               onPressed: () => Navigator.of(context).pop(),
               child: const Text("Annuler"),
             ),
-            TextButton(
+            /*TextButton(
               onPressed: () async {
                 final dbHelper = DataBaseHelper();
                 final result = await dbHelper.deleteUnity(unity.id!);
@@ -344,7 +368,7 @@ class _ListunityState extends State<Listunity> {
                 }
               },
               child: const Text("Supprimer"),
-            ),
+            ),*/
           ],
         );
       },

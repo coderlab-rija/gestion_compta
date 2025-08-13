@@ -16,10 +16,21 @@ class Account extends StatefulWidget {
 }
 
 class _AccountState extends State<Account> {
+  // Cette partie liée aux produits a été supprimée
+  // late Future<List<Produits>> _produitsFuture;
+
   @override
   void initState() {
     super.initState();
+    // Plus besoin d'initialiser la future pour les produits
+    // _produitsFuture = fetchProduits();
   }
+
+  // La fonction de récupération des produits a été supprimée
+  // Future<List<Produits>> fetchProduits() async {
+  //   final dbHelper = DataBaseHelper();
+  //   return await dbHelper.produits();
+  // }
 
   void _onItemSelected(int index) {
     Navigator.pop(context);
@@ -68,11 +79,12 @@ class _AccountState extends State<Account> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        flexibleSpace: const Align(
-          alignment: Alignment.bottomCenter,
+        flexibleSpace: Align(
+          alignment: Alignment.bottomCenter, // Positionner en bas de l'AppBar
           child: Padding(
-            padding: EdgeInsets.only(bottom: 50.0),
-            child: ProfilPic(),
+            padding: const EdgeInsets.only(
+                bottom: 50.0), // Ajuster la distance du bas
+            child: const ProfilPic(), // Image du profil
           ),
         ),
       ),

@@ -1,15 +1,17 @@
 import 'package:my_apk/database/achatFournisseur.dart';
+import 'package:my_apk/function/utility.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class PDFBonReception {
   Future<void> generatePdf(List<AchatFournisseur> produits) async {
+    Utility utility = Utility();
     final pdf = pw.Document();
     final total = produits.fold(
         0.0, (sum, produit) => sum + produit.prixAchat * produit.quantity);
-    //var totalInWords = NumberToCharacterConverter('fr');
-    //String response = totalInWords.getTextForNumber(total.round());
+
+    final totalEnLettre = utility.convertirNombreEnLettre(total);
 
     pdf.addPage(
       pw.Page(
@@ -66,7 +68,7 @@ class PDFBonReception {
                     pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
               pw.Text(
-                "Somme totale de  Ariary",
+                "Somme totale de $totalEnLettre Ariary",
                 style: const pw.TextStyle(fontSize: 16),
               ),
               pw.SizedBox(height: 20),

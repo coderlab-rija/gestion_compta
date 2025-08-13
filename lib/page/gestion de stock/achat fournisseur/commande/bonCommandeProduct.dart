@@ -1,10 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:my_apk/database/categorie.dart';
 import 'package:my_apk/database/produits.dart';
-import 'package:my_apk/database/unite.dart';
+import 'package:my_apk/database/uniteProduit.dart';
 import 'package:my_apk/database/fournisseur.dart';
 import 'package:my_apk/function/sqlite.dart';
-import 'package:my_apk/function/utility.dart';
 import 'package:my_apk/page/authentification/login.dart';
 import 'package:my_apk/page/client/ClientHome.dart';
 import 'package:my_apk/page/configuration/configurationHome.dart';
@@ -30,31 +30,42 @@ class Boncommandeproduct extends StatefulWidget {
 class _BoncommandeState extends State<Boncommandeproduct> {
   late Future<List<Unite>> _unityFuture;
   late Future<List<Supplier>> _fournisseurFuture;
-  final dbHelper = DataBaseHelper();
-  final utility = Utility();
-
-  TextEditingController quantityController = TextEditingController();
-  TextEditingController prixAchatController = TextEditingController();
-  TextEditingController prixVenteController = TextEditingController();
-  TextEditingController dateCommandeController = TextEditingController();
 
   int? selectedCategoryId;
   int? selectedUnityId;
   int? selectedFournisseurId;
+  TextEditingController quantityController = TextEditingController();
+  TextEditingController prixAchatController = TextEditingController();
+  TextEditingController prixVenteController = TextEditingController();
+  TextEditingController dateCommandeController = TextEditingController();
   String status = "En cours";
   String? selectedPaymentType;
 
   @override
   void initState() {
     super.initState();
-    _unityFuture = dbHelper.getUnity();
-    _fournisseurFuture = dbHelper.getFournisseurs();
+    _unityFuture = getUnity();
+    _fournisseurFuture = getFournisseurs();
 
     dateCommandeController.text = DateTime.now().toString().substring(0, 10);
-    selectedCategoryId = widget.product.categoryId;
+    selectedCategoryId = widget.product.idCategorie;
     selectedUnityId = widget.product.unityId;
     selectedFournisseurId = null;
     selectedPaymentType = 'Espèce';
+  }
+
+  String generateReference(int fournisseurId) {
+    String dateCommande =
+        DateTime.now().toIso8601String().substring(0, 10).replaceAll("-", "");
+    String randomCode = _generateRandomString(5);
+    return 'Achat/Fournisseur-$fournisseurId-$dateCommande-$randomCode';
+  }
+
+  String _generateRandomString(int length) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    Random rand = Random();
+    return List.generate(length, (index) => chars[rand.nextInt(chars.length)])
+        .join();
   }
 
   Future<List<Categorie>> getCategory() async {
@@ -64,9 +75,40 @@ class _BoncommandeState extends State<Boncommandeproduct> {
         await db.query('category');
     return categoriesMaps.map((categoryMap) {
       return Categorie(
-        id: categoryMap['id'] as int,
+        id: categoryMap['id'] as String,
         name: categoryMap['name'] as String,
         description: categoryMap['description'] as String,
+      );
+    }).toList();
+  }
+
+  Future<List<Unite>> getUnity() async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    final List<Map<String, Object?>> clientMaps = await db.query('unity');
+    return clientMaps.map((clientMaps) {
+      return Unite(
+        id: clientMaps['id'] as String,
+        name: clientMaps['name'] as String,
+        unite: clientMaps['unite'] as String,
+      );
+    }).toList();
+  }
+
+  Future<List<Supplier>> getFournisseurs() async {
+    final dbHelper = DataBaseHelper();
+    final db = await dbHelper.initDB();
+    final List<Map<String, Object?>> fournisseurMaps =
+        await db.query('fournisseur');
+    return fournisseurMaps.map((fournisseurMap) {
+      return Supplier(
+        id: fournisseurMap['id'] as String,
+        fournisseurName: fournisseurMap['fournisseurName'] as String,
+        fournisseurAdress: fournisseurMap['fournisseurAdress'] as String,
+        nif: fournisseurMap['nif'] as String,
+        stat: fournisseurMap['stat'] as String,
+        contact: fournisseurMap['contact'] as String,
+        dateCreation: fournisseurMap['dateCreation'] as String,
       );
     }).toList();
   }
@@ -138,7 +180,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
       return;
     }
 
-    String reference = utility.generateReference(selectedFournisseurId!);
+    String reference = generateReference(selectedFournisseurId!);
 
     final newCommande = {
       'produitId': widget.product.id ?? 0,
@@ -207,7 +249,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
                   return const CircularProgressIndicator();
                 }
                 final unities = snapshot.data!;
-                selectedUnityId ??= unities.isNotEmpty ? unities[0].id : null;
+                //selectedUnityId ??= unities.isNotEmpty ? unities[0].id : null;
 
                 return DropdownButtonFormField<int>(
                   value: selectedUnityId,
@@ -218,7 +260,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
                   },
                   items: unities.map((unite) {
                     return DropdownMenuItem<int>(
-                      value: unite.id,
+                      //value: unite.id,
                       child: Text(unite.name),
                     );
                   }).toList(),
@@ -235,8 +277,9 @@ class _BoncommandeState extends State<Boncommandeproduct> {
                   return const CircularProgressIndicator();
                 }
                 final fournisseurs = snapshot.data!;
-                selectedFournisseurId ??=
-                    fournisseurs.isNotEmpty ? fournisseurs[0].id : null;
+                selectedFournisseurId ??= (fournisseurs.isNotEmpty
+                    ? fournisseurs[0].id
+                    : null) as int?;
 
                 return DropdownButtonFormField<int>(
                   value: selectedFournisseurId,
@@ -247,7 +290,7 @@ class _BoncommandeState extends State<Boncommandeproduct> {
                   },
                   items: fournisseurs.map((fournisseur) {
                     return DropdownMenuItem<int>(
-                      value: fournisseur.id,
+                      value: fournisseur.id as int,
                       child: Text(fournisseur.fournisseurName),
                     );
                   }).toList(),

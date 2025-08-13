@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_apk/page/home/home.dart';
 import 'package:my_apk/page/authentification/signup.dart';
-import 'package:my_apk/database/users.dart';
 import 'package:my_apk/function/sqlite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,56 +27,85 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoginTrue = false;
 
   Future<void> login() async {
-    int? userId = await db.login(Utilisateur(
-      username: username.text,
-      lastname: lastname.text,
-      email: email.text,
-      password: password.text,
-    ));
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email.text.trim(),
+        password: password.text.trim(),
+      );
 
-    if (userId != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('userId', userId);
-      final users = await db.getUtilisateurById(userId);
-      final userRole = users?.role;
-      final userPassword = users?.password;
-      if (userRole != null) {
-        await prefs.setString('role', userRole);
-        if (kDebugMode) {
-          print('User Role Login (Stored): $userRole');
-        }
-      } else {
-        if (kDebugMode) {
-          print('User Role is NULL');
-        }
+      if (kDebugMode) {
+        print("Utilisateur connecté : ${credential.user?.email}");
       }
 
-      if (userPassword != null) {
-        await prefs.setString('userPassword', userPassword);
-        if (kDebugMode) {
-          print('User Password Stored: $userPassword');
-        }
-      } else {
-        if (kDebugMode) {
-          print('User Password is NULL');
-        }
-      }
+      final uid = credential.user!.uid;
 
-      if (userRole == 'admin') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+      final userDoc =
+          await FirebaseFirestore.instance.collection("users").doc(uid).get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        final username = data['username'];
+        final lastname = data['lastname'];
+        final role = data['role'];
+
+        final response = await http.post(
+          Uri.parse("http://10.0.2.2:8000/login"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "uid": uid,
+            "username": username,
+            "lastname": lastname,
+            "email": credential.user!.email,
+            "role": role,
+          }),
         );
+
+        if (response.statusCode == 200) {
+          if (kDebugMode) {
+            print("Connexion backend réussie !");
+          }
+
+          if (!mounted) return; // protection contre widget démonté
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          if (kDebugMode) {
+            print("Erreur backend : ${response.body}");
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Erreur serveur")),
+            );
+          }
+        }
       } else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+        if (kDebugMode) {
+          print("Utilisateur non trouvé.");
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Utilisateur non trouvé")),
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoginTrue = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur : ${e.message}")),
         );
       }
-    } else {
-      setState(() {
-        isLoginTrue = true;
-      });
+
+      if (kDebugMode) {
+        print("Erreur login : ${e.code} - ${e.message}");
+      }
     }
   }
 
@@ -85,11 +117,8 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('username', utilisateur.username);
       await prefs.setString('lastname', utilisateur.lastname);
       await prefs.setString('email', utilisateur.email);
-      await prefs.setString('role', utilisateur.role ?? '');
     } else {
-      if (kDebugMode) {
-        print("Error: User not found");
-      }
+      print("Error: User not found");
     }
   }
 
@@ -179,9 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextButton(
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
-                          if (kDebugMode) {
-                            print("Validation successful");
-                          }
+                          print("Validation successful");
                           await login();
                         }
                       },

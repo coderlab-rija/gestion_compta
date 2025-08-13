@@ -1,9 +1,13 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_apk/page/home/home.dart';
 import 'package:my_apk/page/authentification/login.dart';
-import 'package:my_apk/database/users.dart';
-import 'package:my_apk/function/sqlite.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -197,51 +201,60 @@ class _SignUpState extends State<SignUp> {
                       color: Colors.deepPurple,
                     ),
                     child: TextButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (formKey.currentState!.validate()) {
-                          final db = DataBaseHelper();
-                          db
-                              .signUp(Utilisateur(
-                            username: username.text,
-                            lastname: lastname.text,
-                            email: email.text,
-                            password: password.text,
-                          ))
-                              .then((value) async {
-                            if (value > 0) {
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              prefs.setInt('userId', value);
+                          try {
+                            UserCredential userCredential = await FirebaseAuth
+                                .instance
+                                .createUserWithEmailAndPassword(
+                              email: email.text.trim(),
+                              password: password.text.trim(),
+                            );
 
-                              final Utilisateur? utilisateur =
-                                  await db.getUtilisateurById(value);
+                            await FirebaseFirestore.instance
+                                .collection("users")
+                                .doc(userCredential.user!.uid)
+                                .set({
+                              'uid': userCredential.user!.uid,
+                              'lastname': lastname.text,
+                              'username': username.text,
+                              'email': email.text,
+                              'role': 'admin',
+                            });
 
-                              if (utilisateur != null) {
-                                prefs.setString(
-                                    'userName', utilisateur.username);
-                                prefs.setString('userEmail', utilisateur.email);
-                                prefs.setString(
-                                    'userPassword', utilisateur.password);
+                            final response = await http.post(
+                              Uri.parse("http://10.0.2.2:8000/users"),
+                              headers: {"Content-Type": "application/json"},
+                              body: jsonEncode({
+                                "uid": userCredential.user!.uid,
+                                "lastname": lastname.text,
+                                "username": username.text,
+                                "email": email.text,
+                                "role": "admin",
+                              }),
+                            );
+
+                            if (response.statusCode == 200) {
+                              if (kDebugMode) {
+                                print(
+                                    "Utilisateur inscrit et envoyé au backend avec succès !");
                               }
-
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => const HomePage()),
                               );
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Inscription réussie 🎉')),
-                              );
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text('Échec de l\'inscription 😕')),
-                              );
+                              if (kDebugMode) {
+                                print(
+                                    "Erreur lors de l'envoi au backend : ${response.body}");
+                              }
                             }
-                          });
+                          } on FirebaseAuthException catch (e) {
+                            if (kDebugMode) {
+                              print("Erreur Auth : ${e.code} - ${e.message}");
+                            }
+                          }
                         }
                       },
                       child: const Text(

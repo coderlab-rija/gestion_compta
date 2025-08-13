@@ -4,7 +4,6 @@ class Utilisateur {
   String lastname;
   String email;
   String password;
-  String? role;
 
   Utilisateur({
     this.id,
@@ -12,7 +11,6 @@ class Utilisateur {
     required this.lastname,
     required this.email,
     required this.password,
-    this.role,
   });
 
   factory Utilisateur.fromMap(Map<String, dynamic> json) => Utilisateur(
@@ -21,7 +19,6 @@ class Utilisateur {
         lastname: json["lastname"],
         email: json["email"],
         password: json["password"],
-        role: json["role"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -30,6 +27,5 @@ class Utilisateur {
         "lastname": lastname,
         "email": email,
         "password": password,
-        "role": role,
       };
 }

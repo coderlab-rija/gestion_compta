@@ -271,7 +271,8 @@ class _ListcategoryState extends State<Listcategory> {
             TextButton(
               onPressed: () async {
                 final dbHelper = DataBaseHelper();
-                final result = await dbHelper.deleteCategory(category.id!);
+                final result =
+                    await dbHelper.deleteCategory(category.idCategorie!);
                 if (result != -1) {
                   setState(() {
                     _categoryFuture = fetchCategory();

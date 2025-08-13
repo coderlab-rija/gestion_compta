@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "608104943174",
+    "project_id": "gest-ia-37315",
+    "storage_bucket": "gest-ia-37315.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:608104943174:android:88f7cfc3a594a964578447",
+        "android_client_info": {
+          "package_name": "com.example.my_apk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXSZG7yHcEUuk4wmUkc8JNA7O2JFH-_Jo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
